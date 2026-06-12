@@ -1,0 +1,3 @@
+[submodule "prosemirror/prosemirror-model"]
+	path = prosemirror/prosemirror-model
+	url = https://code.haverbeke.berlin/prosemirror/prosemirror-model.git
