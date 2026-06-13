@@ -1,0 +1,81 @@
+{
+  "schema": "example-schema.json",
+  "cases": [
+    {
+      "name": "leading newline dropped by the HTML parser",
+      "input": "<pre>\nx</pre>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "preformatted",
+            "content": [
+              {
+                "type": "text",
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<pre>x</pre>"
+    },
+    {
+      "name": "double leading newline keeps one",
+      "input": "<pre>\n\nx</pre>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "preformatted",
+            "content": [
+              {
+                "type": "text",
+                "text": "\nx"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<pre>\n\nx</pre>"
+    },
+    {
+      "name": "trailing newline preserved",
+      "input": "<pre>x\n</pre>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "preformatted",
+            "content": [
+              {
+                "type": "text",
+                "text": "x\n"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<pre>x\n</pre>"
+    },
+    {
+      "name": "marks stripped inside pre",
+      "input": "<pre>plain <b>bold</b> <i>italic</i></pre>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "preformatted",
+            "content": [
+              {
+                "type": "text",
+                "text": "plain bold italic"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<pre>plain bold italic</pre>"
+    }
+  ]
+}

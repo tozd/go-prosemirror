@@ -1,0 +1,1295 @@
+{
+  "schema": "basic-schema.json",
+  "cases": [
+    {
+      "name": "can represent simple node",
+      "input": "<p>hello</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hello"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hello</p>"
+    },
+    {
+      "name": "can represent a line break",
+      "input": "<p>hi<br/>there</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hi"
+              },
+              {
+                "type": "hard_break"
+              },
+              {
+                "type": "text",
+                "text": "there"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hi<br>there</p>"
+    },
+    {
+      "name": "can represent an image",
+      "input": "<p>hi<img src=\"img.png\" alt=\"x\"/>there</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hi"
+              },
+              {
+                "type": "image",
+                "attrs": {
+                  "src": "img.png",
+                  "alt": "x",
+                  "title": null
+                }
+              },
+              {
+                "type": "text",
+                "text": "there"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hi<img src=\"img.png\" alt=\"x\">there</p>"
+    },
+    {
+      "name": "joins styles",
+      "input": "<p>one<strong>two</strong><em><strong>three</strong>four</em>five</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "one"
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "strong"
+                  }
+                ],
+                "text": "two"
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "em"
+                  },
+                  {
+                    "type": "strong"
+                  }
+                ],
+                "text": "three"
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "em"
+                  }
+                ],
+                "text": "four"
+              },
+              {
+                "type": "text",
+                "text": "five"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>one<strong>two</strong><em><strong>three</strong>four</em>five</p>"
+    },
+    {
+      "name": "can represent links",
+      "input": "<p>a <a href=\"foo\">big </a><a href=\"bar\">nested</a><a href=\"foo\"> link</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "a "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "foo",
+                      "title": null
+                    }
+                  }
+                ],
+                "text": "big "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "bar",
+                      "title": null
+                    }
+                  }
+                ],
+                "text": "nested"
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "foo",
+                      "title": null
+                    }
+                  }
+                ],
+                "text": " link"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>a <a href=\"foo\">big </a><a href=\"bar\">nested</a><a href=\"foo\"> link</a></p>"
+    },
+    {
+      "name": "can represent and unordered list",
+      "input": "<ul><li><p>one</p></li><li><p>two</p></li><li><p>three<strong>!</strong></p></li></ul><p>after</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "bullet_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "one"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "two"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "three"
+                      },
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "!"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "after"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ul><li><p>one</p></li><li><p>two</p></li><li><p>three<strong>!</strong></p></li></ul><p>after</p>"
+    },
+    {
+      "name": "can represent an ordered list",
+      "input": "<ol><li><p>one</p></li><li><p>two</p></li><li><p>three<strong>!</strong></p></li></ol><p>after</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "ordered_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "one"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "two"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "three"
+                      },
+                      {
+                        "type": "text",
+                        "marks": [
+                          {
+                            "type": "strong"
+                          }
+                        ],
+                        "text": "!"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "after"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ol><li><p>one</p></li><li><p>two</p></li><li><p>three<strong>!</strong></p></li></ol><p>after</p>"
+    },
+    {
+      "name": "can represent a blockquote",
+      "input": "<blockquote><p>hello</p><p>bye</p></blockquote>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "hello"
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "bye"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote><p>hello</p><p>bye</p></blockquote>"
+    },
+    {
+      "name": "can represent a nested blockquote",
+      "input": "<blockquote><blockquote><blockquote><p>he said</p></blockquote></blockquote><p>i said</p></blockquote>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "content": [
+              {
+                "type": "blockquote",
+                "content": [
+                  {
+                    "type": "blockquote",
+                    "content": [
+                      {
+                        "type": "paragraph",
+                        "content": [
+                          {
+                            "type": "text",
+                            "text": "he said"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "i said"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote><blockquote><blockquote><p>he said</p></blockquote></blockquote><p>i said</p></blockquote>"
+    },
+    {
+      "name": "can represent headings",
+      "input": "<h1>one</h1><h2>two</h2><p>text</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "level": 1
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "one"
+              }
+            ]
+          },
+          {
+            "type": "heading",
+            "attrs": {
+              "level": 2
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "two"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "text"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<h1>one</h1><h2>two</h2><p>text</p>"
+    },
+    {
+      "name": "can represent a code block",
+      "input": "<blockquote><pre><code>some code</code></pre></blockquote><p>and</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "content": [
+              {
+                "type": "code_block",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "some code"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "and"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote><pre><code>some code</code></pre></blockquote><p>and</p>"
+    },
+    {
+      "name": "can represent inline code",
+      "input": "<p>text and <code>code that is </code><em><code>emphasized</code></em><code>...</code></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "text and "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "code that is "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "em"
+                  },
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "emphasized"
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "code"
+                  }
+                ],
+                "text": "..."
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>text and <code>code that is </code><em><code>emphasized</code></em><code>...</code></p>"
+    },
+    {
+      "name": "supports leaf nodes in marks",
+      "input": "<p><em>hi<br>x</em></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "em"
+                  }
+                ],
+                "text": "hi"
+              },
+              {
+                "type": "hard_break",
+                "marks": [
+                  {
+                    "type": "em"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "em"
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><em>hi<br>x</em></p>"
+    },
+    {
+      "name": "doesn't collapse non-breaking spaces",
+      "input": "<p>   hello </p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "   hello "
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>   hello </p>"
+    },
+    {
+      "name": "can recover a list item",
+      "input": "<ol><p>Oh no</p></ol>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "ordered_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "Oh no"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ol><li><p>Oh no</p></li></ol>"
+    },
+    {
+      "name": "wraps a list item in a list",
+      "input": "<li>hey</li>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "ordered_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "hey"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ol><li><p>hey</p></li></ol>"
+    },
+    {
+      "name": "can turn divs into paragraphs",
+      "input": "<div>hi</div><div>bye</div>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hi"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "bye"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hi</p><p>bye</p>"
+    },
+    {
+      "name": "interprets <i> and <b> as emphasis and strong",
+      "input": "<p><i>hello <b>there</b></i></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "em"
+                  }
+                ],
+                "text": "hello "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "em"
+                  },
+                  {
+                    "type": "strong"
+                  }
+                ],
+                "text": "there"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><em>hello <strong>there</strong></em></p>"
+    },
+    {
+      "name": "wraps stray text in a paragraph",
+      "input": "hi",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hi"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hi</p>"
+    },
+    {
+      "name": "ignores an extra wrapping <div>",
+      "input": "<div><p>one</p><p>two</p></div>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "one"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "two"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>one</p><p>two</p>"
+    },
+    {
+      "name": "ignores meaningless whitespace",
+      "input": " <blockquote> <p>woo  \n  <em> hooo</em></p> </blockquote> ",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "content": [
+              {
+                "type": "paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "woo "
+                  },
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "em"
+                      }
+                    ],
+                    "text": "hooo"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote><p>woo <em>hooo</em></p></blockquote>"
+    },
+    {
+      "name": "removes whitespace after a hard break",
+      "input": "<p>hello<br>\n  world</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hello"
+              },
+              {
+                "type": "hard_break"
+              },
+              {
+                "type": "text",
+                "text": "world"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hello<br>world</p>"
+    },
+    {
+      "name": "converts br nodes to newlines when they would otherwise be ignored",
+      "input": "<pre>foo<br>bar</pre>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "code_block",
+            "content": [
+              {
+                "type": "text",
+                "text": "foo\nbar"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<pre><code>foo\nbar</code></pre>"
+    },
+    {
+      "name": "finds a valid place for invalid content",
+      "input": "<ul><li>hi</li><p>whoah</p><li>again</li></ul>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "bullet_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "hi"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "whoah"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "again"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ul><li><p>hi</p></li><li><p>whoah</p></li><li><p>again</p></li></ul>"
+    },
+    {
+      "name": "moves nodes up when they don't fit the current context",
+      "input": "<div>hello<hr/>bye</div>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hello"
+              }
+            ]
+          },
+          {
+            "type": "horizontal_rule"
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "bye"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hello</p><hr><p>bye</p>"
+    },
+    {
+      "name": "doesn't ignore whitespace-only text nodes",
+      "input": "<p><em>one</em> <strong>two</strong></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "em"
+                  }
+                ],
+                "text": "one"
+              },
+              {
+                "type": "text",
+                "text": " "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "strong"
+                  }
+                ],
+                "text": "two"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><em>one</em> <strong>two</strong></p>"
+    },
+    {
+      "name": "can handle stray tab characters",
+      "input": "<p> <b>&#09;</b></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph"
+          }
+        ]
+      },
+      "canonical": "<p></p>"
+    },
+    {
+      "name": "normalizes random spaces",
+      "input": "<p><b>1 </b>  </p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "strong"
+                  }
+                ],
+                "text": "1"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><strong>1</strong></p>"
+    },
+    {
+      "name": "can parse an empty code block",
+      "input": "<pre></pre>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "code_block"
+          }
+        ]
+      },
+      "canonical": "<pre><code></code></pre>"
+    },
+    {
+      "name": "preserves trailing space in a code block",
+      "input": "<pre>foo\n</pre>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "code_block",
+            "content": [
+              {
+                "type": "text",
+                "text": "foo\n"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<pre><code>foo\n</code></pre>"
+    },
+    {
+      "name": "ignores <script> tags",
+      "input": "<p>hello<script>alert('x')</script>!</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hello!"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hello!</p>"
+    },
+    {
+      "name": "can handle a head/body input structure",
+      "input": "<head><title>T</title><meta charset='utf8'/></head><body>hi</body>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hi"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hi</p>"
+    },
+    {
+      "name": "only applies a mark once",
+      "input": "<p>A <strong>big <strong>strong</strong> monster</strong>.</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "A "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "strong"
+                  }
+                ],
+                "text": "big strong monster"
+              },
+              {
+                "type": "text",
+                "text": "."
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>A <strong>big strong monster</strong>.</p>"
+    },
+    {
+      "name": "ignores unknown inline tags",
+      "input": "<p><u>a</u>bc</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "abc"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>abc</p>"
+    },
+    {
+      "name": "can add marks specified before their parent node is opened",
+      "input": "<em>hi</em> you",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "em"
+                  }
+                ],
+                "text": "hi"
+              },
+              {
+                "type": "text",
+                "text": " you"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><em>hi</em> you</p>"
+    },
+    {
+      "name": "keeps applying a mark for the all of the node's content",
+      "input": "<p><strong><span>xx</span>bar</strong></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "strong"
+                  }
+                ],
+                "text": "xxbar"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><strong>xxbar</strong></p>"
+    },
+    {
+      "name": "closes block with inline content on seeing block-level children",
+      "input": "<div><br><div>CCC</div><div>DDD</div><br></div>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "hard_break"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "CCC"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "DDD"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "hard_break"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><br></p><p>CCC</p><p>DDD</p><p><br></p>"
+    },
+    {
+      "name": "doesn't get confused by nested mark tags",
+      "input": "<div><strong><strong>A</strong></strong>B</div><span>C</span>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "strong"
+                  }
+                ],
+                "text": "A"
+              },
+              {
+                "type": "text",
+                "text": "B"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "C"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><strong>A</strong>B</p><p>C</p>"
+    },
+    {
+      "name": "preserves whitespace in nodes styled with white-space",
+      "input": "  <div style='white-space: pre'>  okay  then </div>  <p> x</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "  okay  then "
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>  okay  then </p><p>x</p>",
+      "recanonical": "<p>okay then</p><p>x</p>"
+    }
+  ]
+}

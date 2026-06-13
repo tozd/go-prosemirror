@@ -1,0 +1,87 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - arangolint
+    - cyclop
+    - depguard
+    - funcorder
+    - funlen
+    - gocognit
+    - gocyclo
+    - godox
+    - gomodguard
+    - nlreturn
+    - unqueryvet
+    - varnamelen
+    - wsl
+    - wsl_v5
+  settings:
+    errcheck:
+      check-type-assertions: true
+    exhaustruct:
+      allow-empty: true
+    goconst:
+      ignore-string-values:
+        - "blockquote"
+        - "code"
+        - "doc"
+        - "link"
+        - "type"
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+    godot:
+      scope: all
+    govet:
+      disable:
+        - fieldalignment
+      enable-all: true
+    lll:
+      line-length: 170
+    nestif:
+      min-complexity: 15
+    nolintlint:
+      require-specific: true
+      allow-unused: false
+    staticcheck:
+      checks:
+        - all
+    tagalign:
+      strict: true
+    testifylint:
+      require-error:
+        fn-pattern: ^(NoError|NotErrorIs)$
+  exclusions:
+    generated: strict
+    warn-unused: true
+    rules:
+      - linters:
+          - govet
+        text: 'shadow: declaration of "(err|errE)" shadows declaration'
+      - linters:
+          - revive
+        text: "exported: exported var Err"
+      - linters:
+          - goconst
+        path: .*_test\.go
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+    # - gci
+    # - golines
+    # - swaggo
+  settings:
+    goimports:
+      local-prefixes:
+        - gitlab.com/tozd/go/prosemirror
+  exclusions:
+    generated: strict
+    warn-unused: true
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+run:
+  timeout: 4m

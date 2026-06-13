@@ -1,0 +1,207 @@
+{
+  "schema": "example-schema.json",
+  "cases": [
+    {
+      "name": "paragraph becomes blockquote paragraph",
+      "input": "<blockquote><p>text</p></blockquote>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "attrs": {
+              "cite": null
+            },
+            "content": [
+              {
+                "type": "blockquote_paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "text"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote><p>text</p></blockquote>"
+    },
+    {
+      "name": "italic dropped inside blockquote",
+      "input": "<blockquote><p>a<i>b</i>c</p></blockquote>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "attrs": {
+              "cite": null
+            },
+            "content": [
+              {
+                "type": "blockquote_paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "abc"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote><p>abc</p></blockquote>"
+    },
+    {
+      "name": "bold kept inside blockquote",
+      "input": "<blockquote><p><b>bold</b></p></blockquote>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "attrs": {
+              "cite": null
+            },
+            "content": [
+              {
+                "type": "blockquote_paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "bold"
+                      }
+                    ],
+                    "text": "bold"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote><p><b>bold</b></p></blockquote>"
+    },
+    {
+      "name": "valid cite kept",
+      "input": "<blockquote cite=\"/sources/1\"><p>x</p></blockquote>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "attrs": {
+              "cite": "/sources/1"
+            },
+            "content": [
+              {
+                "type": "blockquote_paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "x"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote cite=\"/sources/1\"><p>x</p></blockquote>"
+    },
+    {
+      "name": "invalid cite dropped blockquote kept",
+      "input": "<blockquote cite=\"javascript:alert(1)\"><p>x</p></blockquote>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "attrs": {
+              "cite": null
+            },
+            "content": [
+              {
+                "type": "blockquote_paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "x"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote><p>x</p></blockquote>"
+    },
+    {
+      "name": "mailto cite rejected",
+      "input": "<blockquote cite=\"mailto:user@example.com\"><p>x</p></blockquote>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "attrs": {
+              "cite": null
+            },
+            "content": [
+              {
+                "type": "blockquote_paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "x"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote><p>x</p></blockquote>"
+    },
+    {
+      "name": "valid mailto link inside blockquote",
+      "input": "<blockquote><p><a href=\"mailto:user@example.com\">mail</a></p></blockquote>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "attrs": {
+              "cite": null
+            },
+            "content": [
+              {
+                "type": "blockquote_paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "marks": [
+                      {
+                        "type": "link",
+                        "attrs": {
+                          "href": "mailto:user@example.com"
+                        }
+                      }
+                    ],
+                    "text": "mail"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote><p><a href=\"mailto:user@example.com\">mail</a></p></blockquote>"
+    }
+  ]
+}

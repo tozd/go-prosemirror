@@ -1,0 +1,614 @@
+{
+  "schema": "example-schema.json",
+  "cases": [
+    {
+      "name": "paragraph",
+      "input": "<p>hello</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hello"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hello</p>"
+    },
+    {
+      "name": "blockquote without cite",
+      "input": "<blockquote><p>quoted</p></blockquote>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "attrs": {
+              "cite": null
+            },
+            "content": [
+              {
+                "type": "blockquote_paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "quoted"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote><p>quoted</p></blockquote>"
+    },
+    {
+      "name": "blockquote with cite",
+      "input": "<blockquote cite=\"https://example.com/source\"><p>quoted</p></blockquote>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "attrs": {
+              "cite": "https://example.com/source"
+            },
+            "content": [
+              {
+                "type": "blockquote_paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "quoted"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote cite=\"https://example.com/source\"><p>quoted</p></blockquote>"
+    },
+    {
+      "name": "heading level 1",
+      "input": "<h1>one</h1>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "level": 1
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "one"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<h1>one</h1>"
+    },
+    {
+      "name": "heading level 2",
+      "input": "<h2>two</h2>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "level": 2
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "two"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<h2>two</h2>"
+    },
+    {
+      "name": "heading level 3",
+      "input": "<h3>three</h3>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "level": 3
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "three"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<h3>three</h3>"
+    },
+    {
+      "name": "heading level 4",
+      "input": "<h4>four</h4>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "level": 4
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "four"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<h4>four</h4>"
+    },
+    {
+      "name": "heading drops marks",
+      "input": "<h2>plain <b>bold</b> <i>italic</i></h2>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "heading",
+            "attrs": {
+              "level": 2
+            },
+            "content": [
+              {
+                "type": "text",
+                "text": "plain bold italic"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<h2>plain bold italic</h2>"
+    },
+    {
+      "name": "preformatted",
+      "input": "<pre>code here</pre>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "preformatted",
+            "content": [
+              {
+                "type": "text",
+                "text": "code here"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<pre>code here</pre>"
+    },
+    {
+      "name": "bullet list",
+      "input": "<ul><li>one</li><li>two</li></ul>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "bullet_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "one"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "two"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ul><li><p>one</p></li><li><p>two</p></li></ul>"
+    },
+    {
+      "name": "ordered list",
+      "input": "<ol><li>first</li><li>second</li></ol>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "ordered_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "first"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "second"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ol><li><p>first</p></li><li><p>second</p></li></ol>"
+    },
+    {
+      "name": "nested bullet list",
+      "input": "<ul><li>one<ul><li>nested</li></ul></li><li>two</li></ul>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "bullet_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "one"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "bullet_list",
+                    "content": [
+                      {
+                        "type": "list_item",
+                        "content": [
+                          {
+                            "type": "paragraph",
+                            "content": [
+                              {
+                                "type": "text",
+                                "text": "nested"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "two"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ul><li><p>one</p><ul><li><p>nested</p></li></ul></li><li><p>two</p></li></ul>"
+    },
+    {
+      "name": "ordered list nested in bullet list",
+      "input": "<ul><li>one<ol><li>sub</li></ol></li></ul>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "bullet_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "one"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "ordered_list",
+                    "content": [
+                      {
+                        "type": "list_item",
+                        "content": [
+                          {
+                            "type": "paragraph",
+                            "content": [
+                              {
+                                "type": "text",
+                                "text": "sub"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ul><li><p>one</p><ol><li><p>sub</p></li></ol></li></ul>"
+    },
+    {
+      "name": "list item with multiple paragraphs",
+      "input": "<ul><li><p>first</p><p>second</p></li></ul>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "bullet_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "first"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "second"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ul><li><p>first</p><p>second</p></li></ul>"
+    },
+    {
+      "name": "horizontal rule at top level",
+      "input": "<p>before</p><hr><p>after</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "before"
+              }
+            ]
+          },
+          {
+            "type": "horizontal_rule"
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "after"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>before</p><hr><p>after</p>"
+    },
+    {
+      "name": "horizontal rule nested in a list is dropped",
+      "input": "<ul><li>item<hr></li></ul>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "bullet_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "item"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "horizontal_rule"
+          }
+        ]
+      },
+      "canonical": "<ul><li><p>item</p></li></ul><hr>"
+    },
+    {
+      "name": "horizontal rule nested in a blockquote is dropped",
+      "input": "<blockquote><p>a</p><hr><p>b</p></blockquote>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "blockquote",
+            "attrs": {
+              "cite": null
+            },
+            "content": [
+              {
+                "type": "blockquote_paragraph",
+                "content": [
+                  {
+                    "type": "text",
+                    "text": "a"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "horizontal_rule"
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "b"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<blockquote><p>a</p></blockquote><hr><p>b</p>"
+    },
+    {
+      "name": "hard break",
+      "input": "<p>one<br>two</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "one"
+              },
+              {
+                "type": "hard_break"
+              },
+              {
+                "type": "text",
+                "text": "two"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>one<br>two</p>"
+    },
+    {
+      "name": "empty input",
+      "input": "",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph"
+          }
+        ]
+      },
+      "canonical": "<p></p>"
+    },
+    {
+      "name": "plain text without tags",
+      "input": "plain text",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "plain text"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>plain text</p>"
+    },
+    {
+      "name": "whitespace-only input",
+      "input": "   \n\t  ",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph"
+          }
+        ]
+      },
+      "canonical": "<p></p>"
+    }
+  ]
+}

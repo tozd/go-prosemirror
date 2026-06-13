@@ -1,0 +1,104 @@
+{
+  "schema": "feature-schema.json",
+  "cases": [
+    {
+      "name": "class selector matches only the class",
+      "input": "<p class=\"foo\">a</p><p class=\"bar\">b</p><p>c</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "callout",
+            "content": [
+              {
+                "type": "text",
+                "text": "a"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "b"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "c"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<aside>a</aside><p>b</p><p>c</p>"
+    },
+    {
+      "name": "style rule matches inline longhand",
+      "input": "<p><span style=\"font-weight: bold\">x</span></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><b>x</b></p>"
+    },
+    {
+      "name": "namespace rule matches foreign element",
+      "input": "<svg><circle></circle>shape</svg>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "graphic",
+            "content": [
+              {
+                "type": "text",
+                "text": "shape"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<svg>shape</svg>"
+    },
+    {
+      "name": "foreign namespaced script is ignored",
+      "input": "<svg><script>alert(1)</script><style>x{}</style>ok</svg>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "graphic",
+            "content": [
+              {
+                "type": "text",
+                "text": "ok"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<svg>ok</svg>"
+    }
+  ]
+}

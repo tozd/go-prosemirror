@@ -1,0 +1,412 @@
+{
+  "schema": "example-schema.json",
+  "cases": [
+    {
+      "name": "bold",
+      "input": "<p><b>bold</b></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ],
+                "text": "bold"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><b>bold</b></p>"
+    },
+    {
+      "name": "italic",
+      "input": "<p><i>italic</i></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "italic"
+                  }
+                ],
+                "text": "italic"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><i>italic</i></p>"
+    },
+    {
+      "name": "underline",
+      "input": "<p><u>underlined</u></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "underline"
+                  }
+                ],
+                "text": "underlined"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><u>underlined</u></p>"
+    },
+    {
+      "name": "strikethrough",
+      "input": "<p><strike>struck</strike></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "strikethrough"
+                  }
+                ],
+                "text": "struck"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><strike>struck</strike></p>"
+    },
+    {
+      "name": "monospace",
+      "input": "<p><tt>mono</tt></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "monospace"
+                  }
+                ],
+                "text": "mono"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><tt>mono</tt></p>"
+    },
+    {
+      "name": "link",
+      "input": "<p><a href=\"https://example.com/\">link</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "https://example.com/"
+                    }
+                  }
+                ],
+                "text": "link"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><a href=\"https://example.com/\">link</a></p>"
+    },
+    {
+      "name": "bold italic nesting",
+      "input": "<p><b><i>both</i></b></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  }
+                ],
+                "text": "both"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><b><i>both</i></b></p>"
+    },
+    {
+      "name": "italic bold nesting",
+      "input": "<p><i><b>both</b></i></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  }
+                ],
+                "text": "both"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><b><i>both</i></b></p>"
+    },
+    {
+      "name": "adjacent same-mark text merges",
+      "input": "<p><b>one</b><b>two</b></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ],
+                "text": "onetwo"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><b>onetwo</b></p>"
+    },
+    {
+      "name": "marks across hard break",
+      "input": "<p><b>one<br>two</b></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ],
+                "text": "one"
+              },
+              {
+                "type": "hard_break",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ],
+                "text": "two"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><b>one<br>two</b></p>"
+    },
+    {
+      "name": "overlapping mark ranges",
+      "input": "<p><b>a<i>b</i></b><i>c</i></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ],
+                "text": "a"
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  },
+                  {
+                    "type": "italic"
+                  }
+                ],
+                "text": "b"
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "italic"
+                  }
+                ],
+                "text": "c"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><b>a<i>b</i></b><i>c</i></p>"
+    },
+    {
+      "name": "strong parses as bold",
+      "input": "<p><strong>x</strong></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><b>x</b></p>"
+    },
+    {
+      "name": "em parses as italic",
+      "input": "<p><em>x</em></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "italic"
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><i>x</i></p>"
+    },
+    {
+      "name": "s parses as strikethrough",
+      "input": "<p><s>x</s></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "strikethrough"
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><strike>x</strike></p>"
+    },
+    {
+      "name": "del parses as strikethrough",
+      "input": "<p><del>x</del></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "strikethrough"
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><strike>x</strike></p>"
+    }
+  ]
+}

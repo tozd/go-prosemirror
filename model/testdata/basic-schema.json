@@ -1,0 +1,109 @@
+{
+  "topNode": "doc",
+  "nodes": {
+    "doc": {
+      "content": "block+"
+    },
+    "paragraph": {
+      "group": "block",
+      "content": "inline*",
+      "toHTML": {"tag": "p"},
+      "parseHTML": [{"tag": "p"}]
+    },
+    "blockquote": {
+      "group": "block",
+      "content": "block+",
+      "toHTML": {"tag": "blockquote"},
+      "parseHTML": [{"tag": "blockquote"}]
+    },
+    "horizontal_rule": {
+      "group": "block",
+      "toHTML": {"tag": "hr"},
+      "parseHTML": [{"tag": "hr"}]
+    },
+    "heading": {
+      "attrs": {
+        "level": {"default": 1}
+      },
+      "group": "block",
+      "content": "inline*",
+      "toHTML": {"tag": "h{level}"},
+      "parseHTML": [
+        {"tag": "h1", "attrs": {"level": 1}},
+        {"tag": "h2", "attrs": {"level": 2}},
+        {"tag": "h3", "attrs": {"level": 3}},
+        {"tag": "h4", "attrs": {"level": 4}},
+        {"tag": "h5", "attrs": {"level": 5}},
+        {"tag": "h6", "attrs": {"level": 6}}
+      ]
+    },
+    "code_block": {
+      "group": "block",
+      "content": "text*",
+      "marks": "",
+      "code": true,
+      "toHTML": {"tag": "pre", "content": {"tag": "code"}},
+      "parseHTML": [{"tag": "pre", "preserveWhitespace": "full"}]
+    },
+    "text": {
+      "group": "inline"
+    },
+    "image": {
+      "inline": true,
+      "group": "inline",
+      "attrs": {
+        "src": {},
+        "alt": {"default": null},
+        "title": {"default": null}
+      },
+      "toHTML": {"tag": "img", "attrs": ["src", "alt", "title"]},
+      "parseHTML": [{"tag": "img[src]", "attrs": {"src": "src", "alt": "alt", "title": "title"}}]
+    },
+    "hard_break": {
+      "inline": true,
+      "group": "inline",
+      "toHTML": {"tag": "br"},
+      "parseHTML": [{"tag": "br"}]
+    },
+    "ordered_list": {
+      "group": "block",
+      "content": "list_item+",
+      "toHTML": {"tag": "ol"},
+      "parseHTML": [{"tag": "ol"}]
+    },
+    "bullet_list": {
+      "group": "block",
+      "content": "list_item+",
+      "toHTML": {"tag": "ul"},
+      "parseHTML": [{"tag": "ul"}]
+    },
+    "list_item": {
+      "content": "paragraph block*",
+      "toHTML": {"tag": "li"},
+      "parseHTML": [{"tag": "li"}]
+    }
+  },
+  "marks": {
+    "link": {
+      "attrs": {
+        "href": {},
+        "title": {"default": null}
+      },
+      "inclusive": false,
+      "toHTML": {"tag": "a", "attrs": ["href", "title"]},
+      "parseHTML": [{"tag": "a[href]", "attrs": {"href": "href", "title": "title"}}]
+    },
+    "em": {
+      "toHTML": {"tag": "em"},
+      "parseHTML": [{"tag": "em"}, {"tag": "i"}]
+    },
+    "strong": {
+      "toHTML": {"tag": "strong"},
+      "parseHTML": [{"tag": "strong"}, {"tag": "b"}]
+    },
+    "code": {
+      "toHTML": {"tag": "code"},
+      "parseHTML": [{"tag": "code"}]
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "schema": "linebreak-schema.json",
+  "cases": [
+    {
+      "name": "preserves whitespace in pre elements",
+      "input": "<pre>  hello </pre>   ",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "  hello "
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>  hello </p>",
+      "recanonical": "<p>hello</p>"
+    },
+    {
+      "name": "inserts line break replacements",
+      "input": "<p><span style='white-space: pre'>one\ntwo\n\nthree</span></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "one"
+              },
+              {
+                "type": "hard_break"
+              },
+              {
+                "type": "text",
+                "text": "two"
+              },
+              {
+                "type": "hard_break"
+              },
+              {
+                "type": "hard_break"
+              },
+              {
+                "type": "text",
+                "text": "three"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>one<br>two<br><br>three</p>"
+    },
+    {
+      "name": "collapses newlines without preserved whitespace",
+      "input": "<p><span>one\ntwo\n\nthree</span></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "one two three"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>one two three</p>"
+    }
+  ]
+}

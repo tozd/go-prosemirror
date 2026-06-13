@@ -1,0 +1,173 @@
+{
+  "schema": "example-schema.json",
+  "cases": [
+    {
+      "name": "runs of whitespace collapse to one space",
+      "input": "<p>a  \t b\n\nc</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "a b c"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>a b c</p>"
+    },
+    {
+      "name": "leading whitespace at block start dropped",
+      "input": "<p>   hello</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hello"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hello</p>"
+    },
+    {
+      "name": "whitespace after hard break dropped",
+      "input": "<p>one<br>   two</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "one"
+              },
+              {
+                "type": "hard_break"
+              },
+              {
+                "type": "text",
+                "text": "two"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>one<br>two</p>"
+    },
+    {
+      "name": "trailing whitespace at block end stripped",
+      "input": "<p>hello   </p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hello"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hello</p>"
+    },
+    {
+      "name": "non-breaking space preserved verbatim",
+      "input": "<p>a  b</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "a  b"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>a  b</p>"
+    },
+    {
+      "name": "whitespace between block elements ignored",
+      "input": "<p>one</p>  \n  <p>two</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "one"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "two"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>one</p><p>two</p>"
+    },
+    {
+      "name": "pre keeps all whitespace",
+      "input": "<pre>  one\t two\nthree  </pre>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "preformatted",
+            "content": [
+              {
+                "type": "text",
+                "text": "  one\t two\nthree  "
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<pre>  one\t two\nthree  </pre>"
+    },
+    {
+      "name": "pre normalizes crlf to lf",
+      "input": "<pre>one\r\ntwo\rthree</pre>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "preformatted",
+            "content": [
+              {
+                "type": "text",
+                "text": "one\ntwo\nthree"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<pre>one\ntwo\nthree</pre>"
+    }
+  ]
+}

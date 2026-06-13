@@ -1,0 +1,161 @@
+{
+  "schema": "basic-schema.json",
+  "cases": [
+    {
+      "name": "white-space pre preserves",
+      "input": "<p style='white-space: pre'>a  b</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "a  b"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>a  b</p>",
+      "recanonical": "<p>a b</p>"
+    },
+    {
+      "name": "white-space uppercase value preserves",
+      "input": "<p style='white-space: PRE'>a  b</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "a  b"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>a  b</p>",
+      "recanonical": "<p>a b</p>"
+    },
+    {
+      "name": "white-space uppercase property collapses",
+      "input": "<p style='WHITE-SPACE: pre'>a  b</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "a b"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>a b</p>"
+    },
+    {
+      "name": "white-space invalid value collapses",
+      "input": "<p style='white-space:prewrap'>a  b</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "a b"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>a b</p>"
+    },
+    {
+      "name": "white-space mixed-case pre-wrap preserves",
+      "input": "<p style='white-space: Pre-Wrap'>a  b</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "a  b"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>a  b</p>",
+      "recanonical": "<p>a b</p>"
+    },
+    {
+      "name": "white-space pre-line preserves",
+      "input": "<p style='white-space: pre-line'>a  b</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "a  b"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>a  b</p>",
+      "recanonical": "<p>a b</p>"
+    },
+    {
+      "name": "white-space normal collapses",
+      "input": "<p style='white-space: normal'>a  b</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "a b"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>a b</p>"
+    },
+    {
+      "name": "white-space nowrap collapses",
+      "input": "<p style='white-space: nowrap'>a  b</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "a b"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>a b</p>"
+    }
+  ]
+}

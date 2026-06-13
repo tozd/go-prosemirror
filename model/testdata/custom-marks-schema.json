@@ -1,0 +1,33 @@
+{
+  "topNode": "doc",
+  "nodes": {
+    "doc": {"content": "block+"},
+    "paragraph": {
+      "group": "block",
+      "content": "inline*",
+      "toHTML": {"tag": "p"},
+      "parseHTML": [{"tag": "p"}]
+    },
+    "text": {"group": "inline"},
+    "image": {
+      "inline": true,
+      "group": "inline",
+      "attrs": {"src": {}},
+      "toHTML": {"tag": "img", "attrs": ["src"]},
+      "parseHTML": [{"tag": "img[src]", "attrs": {"src": "src"}}]
+    },
+    "hard_break": {
+      "inline": true,
+      "group": "inline",
+      "toHTML": {"tag": "br"},
+      "parseHTML": [{"tag": "br"}]
+    }
+  },
+  "marks": {
+    "test": {
+      "spanning": false,
+      "toHTML": {"tag": "test"},
+      "parseHTML": [{"tag": "test"}]
+    }
+  }
+}

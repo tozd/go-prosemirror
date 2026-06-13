@@ -1,0 +1,60 @@
+{
+  "name": "@tozd/prosemirror",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "ProseMirror frontend utilities for Go port of ProseMirror.",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/tozd/go/prosemirror.git"
+  },
+  "module": "./dist/index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "src",
+    "dist",
+    "NOTICE",
+    "!src/*.test.ts"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.eslint.json",
+    "lint": "eslint --fix src scripts",
+    "fmt": "prettier src scripts package.json --write",
+    "test": "vitest",
+    "coverage": "vitest --coverage",
+    "test-ci": "vitest run --reporter junit --reporter default --outputFile tests.xml --coverage",
+    "generate-fixtures": "tsx scripts/generate-fixtures.ts",
+    "upgrade": "ncu -u",
+    "prepare": "npm run build"
+  },
+  "peerDependencies": {
+    "prosemirror-model": "^1.25.8"
+  },
+  "devDependencies": {
+    "@eslint/compat": "^2.0.5",
+    "@eslint/js": "^9.39.1",
+    "@types/jsdom": "^28.0.3",
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^4.1.5",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.5.0",
+    "jsdom": "^29.1.1",
+    "npm-check-updates": "^21.0.3",
+    "prettier": "^3.8.3",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "prosemirror-model": "^1.25.8",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.59.0",
+    "vitest": "^4.1.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

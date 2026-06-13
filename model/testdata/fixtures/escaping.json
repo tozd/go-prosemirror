@@ -1,0 +1,108 @@
+{
+  "schema": "example-schema.json",
+  "cases": [
+    {
+      "name": "escaped characters in text",
+      "input": "<p>&amp; &lt; &gt; \" ' raw</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "& < > \" ' raw"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>&amp; &lt; &gt; &#34; &#39; raw</p>"
+    },
+    {
+      "name": "escaped characters in attribute value",
+      "input": "<p><a href=\"/q?a=&amp;b=<c>&amp;d='e'&amp;f=&quot;g&quot;\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "/q?a=&b=<c>&d='e'&f=\"g\""
+                    }
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><a href=\"/q?a=&amp;b=&lt;c&gt;&amp;d=&#39;e&#39;&amp;f=&#34;g&#34;\">x</a></p>"
+    },
+    {
+      "name": "non-breaking space stays raw",
+      "input": "<p>nbsp here</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "nbsp here"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>nbsp here</p>"
+    },
+    {
+      "name": "emoji stays raw",
+      "input": "<p>emoji 😀 stays</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "emoji 😀 stays"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>emoji 😀 stays</p>"
+    },
+    {
+      "name": "pre-escaped angle brackets stay text",
+      "input": "<p>&lt;div&gt; is text</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "<div> is text"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>&lt;div&gt; is text</p>"
+    }
+  ]
+}

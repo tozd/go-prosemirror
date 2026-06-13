@@ -1,0 +1,147 @@
+{
+  "schema": "example-schema.json",
+  "cases": [
+    {
+      "name": "mso paragraph styles ignored",
+      "input": "<p class=\"MsoNormal\" style=\"mso-margin-top-alt:auto;mso-margin-bottom-alt:auto\">Word text</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Word text"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>Word text</p>"
+    },
+    {
+      "name": "o:p tags skipped",
+      "input": "<p>Hello<o:p></o:p> world</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Hello world"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>Hello world</p>"
+    },
+    {
+      "name": "conditional comments ignored",
+      "input": "<p><!--[if !supportLists]-->* <!--[endif]-->Item</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "* Item"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>* Item</p>"
+    },
+    {
+      "name": "font tags skipped content kept",
+      "input": "<p><font face=\"Calibri\" size=\"2\">styled</font> text</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "styled text"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>styled text</p>"
+    },
+    {
+      "name": "span with bold style skipped plain text kept",
+      "input": "<p><span style=\"font-weight:bold\">important</span> rest</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "important rest"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>important rest</p>"
+    },
+    {
+      "name": "div wrappers unwrapped",
+      "input": "<div><div><p>nested</p></div><div>loose</div></div>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "nested"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "loose"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>nested</p><p>loose</p>"
+    },
+    {
+      "name": "word list paragraph paste",
+      "input": "<p class=\"MsoListParagraph\" style=\"text-indent:-18.0pt;mso-list:l0 level1 lfo1\"><!--[if !supportLists]--><span style=\"mso-list:Ignore\">1.<span style=\"font:7.0pt &quot;Times New Roman&quot;\">&nbsp; </span></span><!--[endif]-->First item<o:p></o:p></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "1.  First item"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>1.  First item</p>"
+    }
+  ]
+}

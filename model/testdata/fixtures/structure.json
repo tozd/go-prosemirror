@@ -1,0 +1,222 @@
+{
+  "schema": "example-schema.json",
+  "cases": [
+    {
+      "name": "stray inline content wrapped in paragraph",
+      "input": "text <b>bold</b> tail",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "text "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ],
+                "text": "bold"
+              },
+              {
+                "type": "text",
+                "text": " tail"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>text <b>bold</b> tail</p>"
+    },
+    {
+      "name": "list item outside a list wrapped",
+      "input": "<li>stray</li>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "bullet_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "stray"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ul><li><p>stray</p></li></ul>"
+    },
+    {
+      "name": "table content parsed without table structure",
+      "input": "<table><tr><td>cell one</td><td>cell two</td></tr></table>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "cell onecell two"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>cell onecell two</p>"
+    },
+    {
+      "name": "headings h5 and h6 fall back to paragraph",
+      "input": "<h5>five</h5><h6>six</h6>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "five"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "six"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>five</p><p>six</p>"
+    },
+    {
+      "name": "ul directly inside ul",
+      "input": "<ul><ul><li>deep</li></ul></ul>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "bullet_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "bullet_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "deep"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ul><li><p></p></li></ul><ul><li><p>deep</p></li></ul>"
+    },
+    {
+      "name": "list normalization folds sibling list into previous item",
+      "input": "<ul><li>one</li><ul><li>nested</li></ul></ul>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "bullet_list",
+            "content": [
+              {
+                "type": "list_item",
+                "content": [
+                  {
+                    "type": "paragraph",
+                    "content": [
+                      {
+                        "type": "text",
+                        "text": "one"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "bullet_list",
+                    "content": [
+                      {
+                        "type": "list_item",
+                        "content": [
+                          {
+                            "type": "paragraph",
+                            "content": [
+                              {
+                                "type": "text",
+                                "text": "nested"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<ul><li><p>one</p><ul><li><p>nested</p></li></ul></li></ul>"
+    },
+    {
+      "name": "deeply nested unknown inline elements",
+      "input": "<p><span><span>x</span></span></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>x</p>"
+    }
+  ]
+}

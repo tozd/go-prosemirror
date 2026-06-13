@@ -1,0 +1,49 @@
+{
+  "schema": "custom-marks-schema.json",
+  "cases": [
+    {
+      "name": "serializes non-spanning marks correctly",
+      "input": "<p><test>a<img src=\"x\">b</test></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "test"
+                  }
+                ],
+                "text": "a"
+              },
+              {
+                "type": "image",
+                "attrs": {
+                  "src": "x"
+                },
+                "marks": [
+                  {
+                    "type": "test"
+                  }
+                ]
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "test"
+                  }
+                ],
+                "text": "b"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><test>a</test><test><img src=\"x\"></test><test>b</test></p>"
+    }
+  ]
+}

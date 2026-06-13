@@ -1,0 +1,31 @@
+{
+  "topNode": "doc",
+  "nodes": {
+    "doc": {"content": "block+"},
+    "paragraph": {
+      "group": "block",
+      "content": "inline*",
+      "toHTML": {"tag": "p"},
+      "parseHTML": [{"tag": "p"}]
+    },
+    "callout": {
+      "group": "block",
+      "content": "inline*",
+      "toHTML": {"tag": "aside"},
+      "parseHTML": [{"tag": "p.foo", "priority": 60}, {"tag": "aside"}]
+    },
+    "graphic": {
+      "group": "block",
+      "content": "inline*",
+      "toHTML": {"tag": "svg"},
+      "parseHTML": [{"tag": "svg", "namespace": "http://www.w3.org/2000/svg"}]
+    },
+    "text": {"group": "inline"}
+  },
+  "marks": {
+    "bold": {
+      "toHTML": {"tag": "b"},
+      "parseHTML": [{"tag": "b"}, {"tag": "strong"}, {"style": "font-weight=bold"}]
+    }
+  }
+}

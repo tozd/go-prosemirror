@@ -1,0 +1,20 @@
+{
+  "topNode": "doc",
+  "nodes": {
+    "doc": {"content": "block+"},
+    "paragraph": {
+      "group": "block",
+      "content": "inline*",
+      "toHTML": {"tag": "p"},
+      "parseHTML": [{"tag": "p"}]
+    },
+    "text": {"group": "inline"},
+    "hard_break": {
+      "inline": true,
+      "group": "inline",
+      "linebreakReplacement": true,
+      "toHTML": {"tag": "br"},
+      "parseHTML": [{"tag": "br"}]
+    }
+  }
+}

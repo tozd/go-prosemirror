@@ -1,0 +1,300 @@
+{
+  "schema": "example-schema.json",
+  "cases": [
+    {
+      "name": "apostrophe entity",
+      "input": "<p>L&#39;art pour l&#39;art</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "L'art pour l'art"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>L&#39;art pour l&#39;art</p>"
+    },
+    {
+      "name": "newline as hard break",
+      "input": "<p>line1<br>line2</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "line1"
+              },
+              {
+                "type": "hard_break"
+              },
+              {
+                "type": "text",
+                "text": "line2"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>line1<br>line2</p>"
+    },
+    {
+      "name": "linkified url",
+      "input": "<p>vir: <a href=\"http://www.mg-lj.si\">www.mg-lj.si</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "vir: "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "http://www.mg-lj.si"
+                    }
+                  }
+                ],
+                "text": "www.mg-lj.si"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>vir: <a href=\"http://www.mg-lj.si\">www.mg-lj.si</a></p>"
+    },
+    {
+      "name": "linkified email",
+      "input": "<p>kontakt: <a href=\"mailto:info@mg-lj.si\">info@mg-lj.si</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "kontakt: "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "mailto:info@mg-lj.si"
+                    }
+                  }
+                ],
+                "text": "info@mg-lj.si"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>kontakt: <a href=\"mailto:info@mg-lj.si\">info@mg-lj.si</a></p>"
+    },
+    {
+      "name": "attachment link paragraph",
+      "input": "<p>opomba</p><p><a href=\"/f/6XmpqAEPHRGoWB3cBdrvih\">scan.pdf</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "opomba"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "/f/6XmpqAEPHRGoWB3cBdrvih"
+                    }
+                  }
+                ],
+                "text": "scan.pdf"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>opomba</p><p><a href=\"/f/6XmpqAEPHRGoWB3cBdrvih\">scan.pdf</a></p>"
+    },
+    {
+      "name": "multiple attachment links",
+      "input": "<p><a href=\"/f/a\">one.pdf</a><br><a href=\"/f/b\">two.pdf</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "/f/a"
+                    }
+                  }
+                ],
+                "text": "one.pdf"
+              },
+              {
+                "type": "hard_break"
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "/f/b"
+                    }
+                  }
+                ],
+                "text": "two.pdf"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><a href=\"/f/a\">one.pdf</a><br><a href=\"/f/b\">two.pdf</a></p>"
+    },
+    {
+      "name": "bare inline wraps into a paragraph",
+      "input": "<b>bold</b>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "bold"
+                  }
+                ],
+                "text": "bold"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><b>bold</b></p>"
+    },
+    {
+      "name": "all-disallowed input becomes empty",
+      "input": "<script>alert(1)</script>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph"
+          }
+        ]
+      },
+      "canonical": "<p></p>"
+    },
+    {
+      "name": "script with surrounding text",
+      "input": "hello <script>alert(1)</script> world",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "hello world"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>hello world</p>"
+    },
+    {
+      "name": "description block",
+      "input": "<p>A document describes a property.</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "A document describes a property."
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>A document describes a property.</p>"
+    },
+    {
+      "name": "description with link",
+      "input": "<p>Data from <a href=\"https://www.geonames.org/\">GeoNames</a>.</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "Data from "
+              },
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "https://www.geonames.org/"
+                    }
+                  }
+                ],
+                "text": "GeoNames"
+              },
+              {
+                "type": "text",
+                "text": "."
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>Data from <a href=\"https://www.geonames.org/\">GeoNames</a>.</p>"
+    }
+  ]
+}

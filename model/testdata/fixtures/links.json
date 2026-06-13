@@ -1,0 +1,338 @@
+{
+  "schema": "example-schema.json",
+  "cases": [
+    {
+      "name": "invalid javascript href",
+      "input": "<p><a href=\"javascript:alert(1)\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>x</p>"
+    },
+    {
+      "name": "invalid file href",
+      "input": "<p><a href=\"file:///etc/passwd\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>x</p>"
+    },
+    {
+      "name": "invalid data href",
+      "input": "<p><a href=\"data:text/html;base64x\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>x</p>"
+    },
+    {
+      "name": "invalid relative href",
+      "input": "<p><a href=\"foo\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>x</p>"
+    },
+    {
+      "name": "invalid protocol-relative href",
+      "input": "<p><a href=\"//host/x\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>x</p>"
+    },
+    {
+      "name": "invalid http href with empty host",
+      "input": "<p><a href=\"http:///x\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>x</p>"
+    },
+    {
+      "name": "invalid bare mailto href",
+      "input": "<p><a href=\"mailto:\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>x</p>"
+    },
+    {
+      "name": "invalid empty href",
+      "input": "<p><a href=\"\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>x</p>"
+    },
+    {
+      "name": "anchor without href",
+      "input": "<p><a>x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>x</p>"
+    },
+    {
+      "name": "valid absolute path href",
+      "input": "<p><a href=\"/path\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "/path"
+                    }
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><a href=\"/path\">x</a></p>"
+    },
+    {
+      "name": "valid root path href",
+      "input": "<p><a href=\"/\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "/"
+                    }
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><a href=\"/\">x</a></p>"
+    },
+    {
+      "name": "valid http href",
+      "input": "<p><a href=\"http://example.com/\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "http://example.com/"
+                    }
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><a href=\"http://example.com/\">x</a></p>"
+    },
+    {
+      "name": "valid https href with query",
+      "input": "<p><a href=\"https://example.com/x?y=1&amp;z=2\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "https://example.com/x?y=1&z=2"
+                    }
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><a href=\"https://example.com/x?y=1&amp;z=2\">x</a></p>"
+    },
+    {
+      "name": "valid uppercase mailto href",
+      "input": "<p><a href=\"MAILTO:a@b.c\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "MAILTO:a@b.c"
+                    }
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><a href=\"MAILTO:a@b.c\">x</a></p>"
+    },
+    {
+      "name": "valid uppercase https href",
+      "input": "<p><a href=\"HTTPS://EXAMPLE.COM/\">x</a></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "link",
+                    "attrs": {
+                      "href": "HTTPS://EXAMPLE.COM/"
+                    }
+                  }
+                ],
+                "text": "x"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><a href=\"HTTPS://EXAMPLE.COM/\">x</a></p>"
+    }
+  ]
+}
