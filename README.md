@@ -12,8 +12,8 @@ schema in the browser from the same shareable JSON.
 
 The components currently available:
 
-- `model` package, ported from [prosemirror-model](https://github.com/ProseMirror/prosemirror-model) v1.25.8 – the document model: schemas, nodes, marks, content expressions, HTML
-  fragment parsing, and canonical HTML serialization.
+- `model` package, ported from [prosemirror-model](https://github.com/ProseMirror/prosemirror-model) v1.25.8 – the
+  document model: schemas, nodes, marks, content expressions, HTML fragment parsing, and canonical HTML serialization.
 
 Each ported component mirrors the structure of its ProseMirror
 TypeScript source so the two can be kept in sync. See [PORTING.md](PORTING.md)
@@ -103,7 +103,8 @@ transform and collaboration layers are out of scope.
 
 ## Related projects
 
-- [prosemirror-go](https://github.com/cozy/prosemirror-go) – a similar port which is somewhat stale and is licensed under AGPL.
+- [prosemirror-go](https://github.com/cozy/prosemirror-go) – a similar port which is somewhat stale and is
+  licensed under AGPL.
 
 ## GitHub mirror
 
