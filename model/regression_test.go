@@ -250,6 +250,152 @@ func TestSchemaRulesOrder(t *testing.T) {
 	assert.Equal(t, "em bar foo i", tags(t, priority))
 }
 
+// TestParseRuleFlags checks the four serializable parse rule flags (ParseRule.Consuming, Ignore, Skip, CloseParent), which change how a matching rule drives
+// parsing. Each case builds a parser with extra rules prepended to the schema rules, mirroring the prosemirror-model test-dom cases that construct a custom
+// DOMParser, and asserts the parsed document through its canonical HTML. The fixture suite cannot cover these because it parses every case through the default
+// schema rules, which carry no such extra rule.
+func TestParseRuleFlags(t *testing.T) {
+	t.Parallel()
+
+	s := fixtureSchema(t, "basic-schema.json")
+	consumingFalse := false
+
+	parseWith := func(t *testing.T, input string, rules ...*ParseRule) string {
+		t.Helper()
+		parser, errE := newDOMParser(s, append(rules, schemaRules(s)...))
+		require.NoError(t, errE, "% -+#.1v", errE)
+		div := regressionParseFragment(t, input)
+		doc, errE := parser.Parse(div, ParseOptions{})
+		require.NoError(t, errE, "% -+#.1v", errE)
+		return SerializeHTML(doc)
+	}
+
+	// CloseParent: a br rule closes the enclosing paragraph, so the text after it starts a new paragraph. Mirrors test-dom "can close parent nodes from a rule".
+	t.Run("can close parent nodes from a rule", func(t *testing.T) {
+		t.Parallel()
+		rule := &ParseRule{Tag: "br", CloseParent: true} //nolint:exhaustruct
+		assert.Equal(t, "<p>one</p><p>two</p>", parseWith(t, "<p>one<br>two</p>", rule))
+	})
+
+	// Consuming false on a node rule: matching the ol against the blockquote rule does not stop the search, so the schema ol rule also runs and the list ends up
+	// inside the blockquote. Mirrors test-dom "supports non-consuming node rules".
+	t.Run("supports non-consuming node rules", func(t *testing.T) {
+		t.Parallel()
+		rule := &ParseRule{Tag: "ol", Node: "blockquote", Consuming: &consumingFalse} //nolint:exhaustruct
+		assert.Equal(t, "<blockquote><ol><li><p>one</p></li></ol></blockquote>", parseWith(t, "<ol><p>one</p></ol>", rule))
+	})
+
+	// Consuming false on a style rule: the font-weight rule produces em without stopping the search, so the font-weight=800 rule then produces strong, applying
+	// both marks. Mirrors test-dom "supports non-consuming style rules", which uses a getAttrs predicate the dialect cannot carry, so the value match is explicit.
+	t.Run("supports non-consuming style rules", func(t *testing.T) {
+		t.Parallel()
+		emRule := &ParseRule{Style: "font-weight", Mark: "em", Consuming: &consumingFalse} //nolint:exhaustruct
+		strongRule := &ParseRule{Style: "font-weight=800", Mark: "strong"}                 //nolint:exhaustruct
+		assert.Equal(t, "<p><em><strong>one</strong></em></p>", parseWith(t, "<p><span style='font-weight: 800'>one</span></p>", emRule, strongRule))
+	})
+
+	// Skip: the span is skipped (its content is parsed but the element and its inline styles are not), so the font-weight style that would otherwise produce an em
+	// mark is not read. Mirrors test-dom "ignores styles on skipped nodes", which drives skip through ruleFromNode, an editor-only option the dialect cannot carry.
+	t.Run("ignores styles on skipped nodes", func(t *testing.T) {
+		t.Parallel()
+		emRule := &ParseRule{Style: "font-weight=bold", Mark: "em"} //nolint:exhaustruct
+		skipRule := &ParseRule{Tag: "span", Skip: true}             //nolint:exhaustruct
+		assert.Equal(t, "<p>abc def</p>", parseWith(t, "<p>abc <span style='font-weight: bold'>def</span></p>", emRule, skipRule))
+		// Without the skip rule the same style is read and wraps the content in an em mark, confirming the skip rule is what suppresses it.
+		assert.Equal(t, "<p>abc <em>def</em></p>", parseWith(t, "<p>abc <span style='font-weight: bold'>def</span></p>", emRule))
+	})
+
+	// Ignore on a tag rule: the matched element and its content are dropped entirely.
+	t.Run("ignores a tag and its content", func(t *testing.T) {
+		t.Parallel()
+		rule := &ParseRule{Tag: "del", Ignore: true} //nolint:exhaustruct
+		assert.Equal(t, "<p>ac</p>", parseWith(t, "<p>a<del>b</del>c</p>", rule))
+	})
+
+	// Ignore on a style rule: an element carrying the matched inline style is dropped together with its content.
+	t.Run("ignores an element matched by a style rule", func(t *testing.T) {
+		t.Parallel()
+		rule := &ParseRule{Style: "font-weight=bold", Ignore: true} //nolint:exhaustruct
+		assert.Equal(t, "<p>ac</p>", parseWith(t, "<p>a<span style='font-weight: bold'>b</span>c</p>", rule))
+	})
+}
+
+// TestParseRuleFlagsDialect checks that the parse rule flags survive the schema JSON dialect: NewSchema accepts consuming, ignore, skip, and closeParent on tag
+// and style rules, schemaRules leaves the node/mark target of an ignore rule empty while filling it for the other flags, and parsing through the schema's
+// DOMParser exhibits the documented behavior. This exercises ParseRule.UnmarshalJSON and the schema construction path, which the direct-parser TestParseRuleFlags
+// does not.
+func TestParseRuleFlagsDialect(t *testing.T) {
+	t.Parallel()
+
+	spec := []byte(`{
+		"nodes": {
+			"doc": {"content": "block+"},
+			"text": {"group": "inline"},
+			"paragraph": {
+				"group": "block",
+				"content": "inline*",
+				"toHTML": {"tag": "p"},
+				"parseHTML": [
+					{"tag": "p"},
+					{"tag": "br", "closeParent": true},
+					{"tag": "cite", "skip": true},
+					{"tag": "del", "ignore": true}
+				]
+			}
+		},
+		"marks": {
+			"em": {"toHTML": {"tag": "em"}, "parseHTML": [{"tag": "i"}, {"style": "font-weight", "consuming": false}]},
+			"strong": {"toHTML": {"tag": "strong"}, "parseHTML": [{"tag": "b"}, {"style": "font-weight=800"}]},
+			"underline": {"toHTML": {"tag": "u"}, "parseHTML": [{"tag": "u"}, {"style": "font-style=oblique", "ignore": true}]}
+		}
+	}`)
+	s, errE := NewSchema(spec, nil)
+	require.NoError(t, errE, "% -+#.1v", errE)
+
+	// The flags are decoded onto the rules, and schemaRules fills the node or mark target of every rule except the ignore ones.
+	rules := schemaRules(s)
+	find := func(t *testing.T, match func(*ParseRule) bool) *ParseRule {
+		t.Helper()
+		for _, rule := range rules {
+			if match(rule) {
+				return rule
+			}
+		}
+		t.Fatal("rule not found")
+		return nil
+	}
+	closeParent := find(t, func(r *ParseRule) bool { return r.Tag == "br" })
+	assert.True(t, closeParent.CloseParent)
+	assert.Equal(t, "paragraph", closeParent.Node)
+	skip := find(t, func(r *ParseRule) bool { return r.Tag == "cite" })
+	assert.True(t, skip.Skip)
+	assert.Equal(t, "paragraph", skip.Node)
+	ignoreTag := find(t, func(r *ParseRule) bool { return r.Tag == "del" })
+	assert.True(t, ignoreTag.Ignore)
+	assert.Empty(t, ignoreTag.Node, "an ignore rule targets neither a node nor a mark")
+	assert.Empty(t, ignoreTag.Mark, "an ignore rule targets neither a node nor a mark")
+	nonConsuming := find(t, func(r *ParseRule) bool { return r.Style == "font-weight" })
+	require.NotNil(t, nonConsuming.Consuming)
+	assert.False(t, *nonConsuming.Consuming)
+	assert.Equal(t, "em", nonConsuming.Mark)
+	ignoreStyle := find(t, func(r *ParseRule) bool { return r.Style == "font-style=oblique" })
+	assert.True(t, ignoreStyle.Ignore)
+	assert.Empty(t, ignoreStyle.Mark, "an ignore rule targets neither a node nor a mark")
+
+	parse := func(t *testing.T, input string) string {
+		t.Helper()
+		doc, errE := ParseHTML(s, input, ParseOptions{})
+		require.NoError(t, errE, "% -+#.1v", errE)
+		return SerializeHTML(doc)
+	}
+
+	assert.Equal(t, "<p>one</p><p>two</p>", parse(t, "<p>one<br>two</p>"))
+	assert.Equal(t, "<p>abc</p>", parse(t, "<p>a<cite>b</cite>c</p>"))
+	assert.Equal(t, "<p>ac</p>", parse(t, "<p>a<del>b</del>c</p>"))
+	assert.Equal(t, "<p><em><strong>one</strong></em></p>", parse(t, "<p><span style='font-weight: 800'>one</span></p>"))
+	assert.Equal(t, "<p>xz</p>", parse(t, "<p>x<span style='font-style: oblique'>y</span>z</p>"))
+}
+
 // TestNewSchemaNullParseRuleEntry checks that a JSON null entry inside a parseHTML array is rejected at NewSchema rather than causing a nil pointer
 // dereference. encoding/json decodes a JSON null array element to a nil rule without calling ParseRule.UnmarshalJSON, so the missing-tag guard would
 // otherwise be bypassed.

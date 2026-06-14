@@ -252,6 +252,24 @@ export const caseCategories: CaseCategory[] = [
     ],
   },
   {
+    // The serializable parse rule flags (consuming, ignore, skip, closeParent) exercised through the schema dialect. The flags-schema attaches each flag to a
+    // parse rule and these cases observe its effect on the parsed document.
+    fixture: "flags",
+    schema: "flags-schema.json",
+    cases: [
+      // closeParent: a br closes the enclosing paragraph, so the text after it begins a new paragraph.
+      { name: "close parent splits the paragraph", input: "<p>one<br>two</p>" },
+      // skip: the cite element itself is dropped but its content is parsed in place.
+      { name: "skip drops the element but keeps its content", input: "<p>a<cite>b</cite>c</p>" },
+      // ignore: the del element is dropped together with its content.
+      { name: "ignore drops the element and its content", input: "<p>a<del>b</del>c</p>" },
+      // consuming false on a style rule: the font-weight rule applies em without ending the search, so the font-weight=800 rule then applies strong.
+      { name: "non-consuming style rule applies a second mark", input: '<p><span style="font-weight: 800">one</span></p>' },
+      // ignore on a style rule: an element carrying the matched inline style is dropped with its content.
+      { name: "ignore style rule drops the element", input: '<p>x<span style="font-style: oblique">y</span>z</p>' },
+    ],
+  },
+  {
     fixture: "linebreak",
     schema: "linebreak-schema.json",
     cases: [

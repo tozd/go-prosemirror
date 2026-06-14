@@ -1,0 +1,117 @@
+{
+  "schema": "flags-schema.json",
+  "cases": [
+    {
+      "name": "close parent splits the paragraph",
+      "input": "<p>one<br>two</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "one"
+              }
+            ]
+          },
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "two"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>one</p><p>two</p>"
+    },
+    {
+      "name": "skip drops the element but keeps its content",
+      "input": "<p>a<cite>b</cite>c</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "abc"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>abc</p>"
+    },
+    {
+      "name": "ignore drops the element and its content",
+      "input": "<p>a<del>b</del>c</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "ac"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>ac</p>"
+    },
+    {
+      "name": "non-consuming style rule applies a second mark",
+      "input": "<p><span style=\"font-weight: 800\">one</span></p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "marks": [
+                  {
+                    "type": "em"
+                  },
+                  {
+                    "type": "strong"
+                  }
+                ],
+                "text": "one"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p><em><strong>one</strong></em></p>"
+    },
+    {
+      "name": "ignore style rule drops the element",
+      "input": "<p>x<span style=\"font-style: oblique\">y</span>z</p>",
+      "doc": {
+        "type": "doc",
+        "content": [
+          {
+            "type": "paragraph",
+            "content": [
+              {
+                "type": "text",
+                "text": "xz"
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "<p>xz</p>"
+    }
+  ]
+}

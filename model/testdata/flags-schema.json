@@ -1,0 +1,32 @@
+{
+  "topNode": "doc",
+  "nodes": {
+    "doc": {"content": "block+"},
+    "paragraph": {
+      "group": "block",
+      "content": "inline*",
+      "toHTML": {"tag": "p"},
+      "parseHTML": [
+        {"tag": "p"},
+        {"tag": "br", "closeParent": true},
+        {"tag": "cite", "skip": true},
+        {"tag": "del", "ignore": true}
+      ]
+    },
+    "text": {"group": "inline"}
+  },
+  "marks": {
+    "em": {
+      "toHTML": {"tag": "em"},
+      "parseHTML": [{"tag": "em"}, {"tag": "i"}, {"style": "font-weight", "consuming": false}]
+    },
+    "strong": {
+      "toHTML": {"tag": "strong"},
+      "parseHTML": [{"tag": "strong"}, {"tag": "b"}, {"style": "font-weight=800"}]
+    },
+    "underline": {
+      "toHTML": {"tag": "u"},
+      "parseHTML": [{"tag": "u"}, {"style": "font-style=oblique", "ignore": true}]
+    }
+  }
+}

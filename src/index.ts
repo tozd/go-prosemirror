@@ -35,6 +35,10 @@ export interface ParseRuleJSON {
   style?: string
   namespace?: string
   context?: string
+  consuming?: boolean
+  ignore?: boolean
+  skip?: boolean
+  closeParent?: boolean
   priority?: number
   preserveWhitespace?: boolean | "full"
   attrs?: Record<string, unknown>
@@ -83,10 +87,13 @@ export type Validator = (value: unknown) => boolean
 // configured: on failure, onInvalid "rejectRule" (the default) rejects the rule and "drop" replaces the value with the default.
 export function buildParseRule(ruleJSON: ParseRuleJSON, attrSpecs: Record<string, AttributeSpecJSON> | undefined, validators: Record<string, Validator>): ParseRule {
   // Style rules produce marks and match an inline CSS declaration; their attrs are always constants (the declarative dialect does not extract from the
-  // style value). Tag rules match a CSS selector, optionally restricted by namespace, and may extract attributes from the element.
+  // style value). Both consuming and ignore are honored for style rules (skip and closeParent are tag-rule behaviors). Tag rules match a CSS selector,
+  // optionally restricted by namespace, and may extract attributes from the element.
   if (ruleJSON.style !== undefined) {
     const rule: StyleParseRule = { style: ruleJSON.style }
     if (ruleJSON.context !== undefined) rule.context = ruleJSON.context
+    if (ruleJSON.consuming !== undefined) rule.consuming = ruleJSON.consuming
+    if (ruleJSON.ignore !== undefined) rule.ignore = ruleJSON.ignore
     if (ruleJSON.priority !== undefined) rule.priority = ruleJSON.priority
     if (ruleJSON.attrs !== undefined) rule.attrs = ruleJSON.attrs
     return rule
@@ -94,6 +101,10 @@ export function buildParseRule(ruleJSON: ParseRuleJSON, attrSpecs: Record<string
   const rule: TagParseRule = { tag: ruleJSON.tag! }
   if (ruleJSON.namespace !== undefined) rule.namespace = ruleJSON.namespace
   if (ruleJSON.context !== undefined) rule.context = ruleJSON.context
+  if (ruleJSON.consuming !== undefined) rule.consuming = ruleJSON.consuming
+  if (ruleJSON.ignore !== undefined) rule.ignore = ruleJSON.ignore
+  if (ruleJSON.skip !== undefined) rule.skip = ruleJSON.skip
+  if (ruleJSON.closeParent !== undefined) rule.closeParent = ruleJSON.closeParent
   if (ruleJSON.priority !== undefined) rule.priority = ruleJSON.priority
   if (ruleJSON.preserveWhitespace !== undefined) rule.preserveWhitespace = ruleJSON.preserveWhitespace
   if (ruleJSON.attrs !== undefined) {

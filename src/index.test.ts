@@ -202,3 +202,32 @@ test("isCanonicalHTML reports whether HTML is its own parse and serialize round 
   assert.isFalse(isCanonicalHTML(schema, "<P>x</P>"))
   assert.isFalse(isCanonicalHTML(schema, "<p><i>x</i></p>"))
 })
+
+test("buildParseRule honors the consuming, ignore, skip, and closeParent flags", () => {
+  const flagsSchemaJSON: SchemaJSON = {
+    nodes: {
+      doc: { content: "block+" },
+      paragraph: {
+        group: "block",
+        content: "inline*",
+        toHTML: { tag: "p" },
+        parseHTML: [{ tag: "p" }, { tag: "br", closeParent: true }, { tag: "cite", skip: true }, { tag: "del", ignore: true }],
+      },
+      text: { group: "inline" },
+    },
+    marks: {
+      em: { toHTML: { tag: "em" }, parseHTML: [{ tag: "em" }, { tag: "i" }, { style: "font-weight", consuming: false }] },
+      strong: { toHTML: { tag: "strong" }, parseHTML: [{ tag: "strong" }, { tag: "b" }, { style: "font-weight=800" }] },
+      underline: { toHTML: { tag: "u" }, parseHTML: [{ tag: "u" }, { style: "font-style=oblique", ignore: true }] },
+    },
+  }
+  const schema = buildSchema(flagsSchemaJSON)
+  // closeParent: a br closes the paragraph; skip: the cite is dropped but its content kept; ignore: the del and its content are dropped.
+  expect(docToHtml(schema, htmlToDoc(schema, "<p>one<br>two</p>"))).toBe("<p>one</p><p>two</p>")
+  expect(docToHtml(schema, htmlToDoc(schema, "<p>a<cite>b</cite>c</p>"))).toBe("<p>abc</p>")
+  expect(docToHtml(schema, htmlToDoc(schema, "<p>a<del>b</del>c</p>"))).toBe("<p>ac</p>")
+  // consuming false on the font-weight style rule lets the font-weight=800 rule also match, applying both marks.
+  expect(docToHtml(schema, htmlToDoc(schema, '<p><span style="font-weight: 800">one</span></p>'))).toBe("<p><em><strong>one</strong></em></p>")
+  // ignore on a style rule drops the element carrying it together with its content.
+  expect(docToHtml(schema, htmlToDoc(schema, '<p>x<span style="font-style: oblique">y</span>z</p>'))).toBe("<p>xz</p>")
+})

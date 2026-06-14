@@ -105,6 +105,22 @@ type ParseRule struct {
 	// multiple different contexts, they can be separated by a pipe character, as in "blockquote/|list_item/".
 	Context string
 
+	// Consuming controls whether a matching rule prevents later rules from also matching the same element or style. By default (nil or a pointer to true) a
+	// matching rule consumes the element or style, so no further rules are tried. A pointer to false indicates that even when this rule matches, the rules
+	// after it should also run. It applies to both tag and style rules.
+	Consuming *bool
+
+	// Ignore, when true, ignores the element or style that matches this rule, and, for an element, its content as well. The head, noscript, object, script,
+	// style, and title tags are ignored automatically when no rule matches them.
+	Ignore bool
+
+	// Skip, when true, ignores the element that matches this rule itself, but still parses its content. The element's own inline styles are not read. It
+	// applies to tag rules.
+	Skip bool
+
+	// CloseParent, when true, closes the current node when an element matching this rule is found. It applies to tag rules.
+	CloseParent bool
+
 	// Priority can be used to change the order in which the parse rules in a schema are tried. Those with higher priority come first. nil counts as
 	// priority 50.
 	Priority *int
@@ -121,9 +137,9 @@ type ParseRule struct {
 	hasStyleValue bool
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface. The allowed keys are tag, style, namespace, attrs, context, priority, and preserveWhitespace;
-// exactly one of tag and style must be present, and namespace is only allowed with tag. Unknown keys are errors. The Node and Mark fields are filled in by
-// schemaRules, not from JSON.
+// UnmarshalJSON implements the json.Unmarshaler interface. The allowed keys are tag, style, namespace, attrs, context, consuming, ignore, skip, closeParent,
+// priority, and preserveWhitespace; exactly one of tag and style must be present, and namespace is only allowed with tag. Unknown keys are errors. The Node and
+// Mark fields are filled in by schemaRules, not from JSON.
 func (r *ParseRule) UnmarshalJSON(data []byte) error {
 	type parseRule struct {
 		Tag                *string            `json:"tag"`
@@ -131,6 +147,10 @@ func (r *ParseRule) UnmarshalJSON(data []byte) error {
 		Namespace          *string            `json:"namespace"`
 		Attrs              map[string]any     `json:"attrs"`
 		Context            string             `json:"context"`
+		Consuming          *bool              `json:"consuming"`
+		Ignore             bool               `json:"ignore"`
+		Skip               bool               `json:"skip"`
+		CloseParent        bool               `json:"closeParent"`
 		Priority           *int               `json:"priority"`
 		PreserveWhitespace PreserveWhitespace `json:"preserveWhitespace"`
 	}
@@ -159,6 +179,10 @@ func (r *ParseRule) UnmarshalJSON(data []byte) error {
 	r.Namespace = raw.Namespace
 	r.Attrs = raw.Attrs
 	r.Context = raw.Context
+	r.Consuming = raw.Consuming
+	r.Ignore = raw.Ignore
+	r.Skip = raw.Skip
+	r.CloseParent = raw.CloseParent
 	r.Priority = raw.Priority
 	r.PreserveWhitespace = raw.PreserveWhitespace
 	return nil
@@ -320,13 +344,17 @@ func (p *DOMParser) matchStyle(prop, value string, cx *parseContext, after *Pars
 
 // matchedRuleAttrs computes the attributes for a match of the given rule against the given element. Constants are taken as-is; extracted attributes read
 // the HTML attribute, falling back to the attribute default when absent (the rule is rejected when the attribute is required); when a validator is
-// configured and fails, OnInvalid "rejectRule" rejects the rule and "drop" replaces the value with the default.
+// configured and fails, OnInvalid "rejectRule" rejects the rule and "drop" replaces the value with the default. A rule that targets neither a node nor a mark
+// (an ignore rule) has no attributes to compute.
 func (p *DOMParser) matchedRuleAttrs(dom *html.Node, rule *ParseRule) (Attrs, bool) {
 	var attributes map[string]*Attribute
-	if rule.Node != "" {
+	switch {
+	case rule.Node != "":
 		attributes = p.Schema.Nodes[rule.Node].Attrs
-	} else {
+	case rule.Mark != "":
 		attributes = p.Schema.Marks[rule.Mark].Attrs
+	default:
+		return nil, true
 	}
 	var result Attrs
 	set := func(name string, value any) {
@@ -365,15 +393,17 @@ func (p *DOMParser) matchedRuleAttrs(dom *html.Node, rule *ParseRule) (Attrs, bo
 	return result, true
 }
 
-// readStyles runs any style rules associated with the element's inline style attribute, returning the given marks extended with the marks the matching
-// style rules produce. Only the element's own inline style declarations are read; shorthand expansion and CSSOM value normalization are not performed.
-func (cx *parseContext) readStyles(dom *html.Node, marks []*Mark) ([]*Mark, errors.E) {
+// readStyles runs any style rules associated with the element's inline style attribute, returning the given marks extended with the marks the matching style
+// rules produce. The boolean result is false when a matching style rule has Ignore set, which signals that the element should be ignored: its content is then
+// not parsed. A style rule whose Consuming is a pointer to false does not stop the search, so further style rules for the same property are also tried. Only the
+// element's own inline style declarations are read; shorthand expansion and CSSOM value normalization are not performed.
+func (cx *parseContext) readStyles(dom *html.Node, marks []*Mark) ([]*Mark, bool, errors.E) {
 	if len(cx.parser.matchedStyles) == 0 {
-		return marks, nil
+		return marks, true, nil
 	}
 	style, ok := getAttr(dom, "style")
 	if !ok || style == "" {
-		return marks, nil
+		return marks, true, nil
 	}
 	declarations := parseInlineStyle(style)
 	for _, name := range cx.parser.matchedStyles {
@@ -381,17 +411,28 @@ func (cx *parseContext) readStyles(dom *html.Node, marks []*Mark) ([]*Mark, erro
 		if !present || value == "" {
 			continue
 		}
-		rule, attrs := cx.parser.matchStyle(name, value, cx, nil)
-		if rule == nil {
-			continue
+		var after *ParseRule
+		for {
+			rule, attrs := cx.parser.matchStyle(name, value, cx, after)
+			if rule == nil {
+				break
+			}
+			if rule.Ignore {
+				return nil, false, nil
+			}
+			mark, errE := cx.parser.Schema.Marks[rule.Mark].Create(attrs)
+			if errE != nil {
+				return nil, false, errE
+			}
+			marks = append(marks[:len(marks):len(marks)], mark)
+			if rule.Consuming != nil && !*rule.Consuming {
+				after = rule
+			} else {
+				break
+			}
 		}
-		mark, errE := cx.parser.Schema.Marks[rule.Mark].Create(attrs)
-		if errE != nil {
-			return nil, errE
-		}
-		marks = append(marks[:len(marks):len(marks)], mark)
 	}
-	return marks, nil
+	return marks, true, nil
 }
 
 // parseInlineStyle parses an inline CSS style attribute into a map from property name (lowercased) to value (trimmed). When a property is declared more
@@ -417,7 +458,7 @@ func parseInlineStyle(style string) map[string]string {
 
 // schemaRules collects the parse rules listed in the node and mark specs of a schema, ordered by decreasing priority (nil counting as 50), with rules of
 // equal priority keeping their iteration order: mark rules before node rules, each in schema declaration order. Each rule is copied and its Node or Mark
-// field is filled with the name of the owning type.
+// field is filled with the name of the owning type, except for rules with Ignore set, which target neither a node nor a mark.
 func schemaRules(schema *Schema) []*ParseRule {
 	var result []*ParseRule
 	insert := func(rule *ParseRule) {
@@ -445,7 +486,7 @@ func schemaRules(schema *Schema) []*ParseRule {
 		for _, rule := range schema.Marks[name].Spec.ParseHTML {
 			copied := *rule
 			insert(&copied)
-			if copied.Mark == "" {
+			if copied.Mark == "" && !copied.Ignore {
 				copied.Mark = name
 			}
 		}
@@ -454,7 +495,7 @@ func schemaRules(schema *Schema) []*ParseRule {
 		for _, rule := range schema.Nodes[name].Spec.ParseHTML {
 			copied := *rule
 			insert(&copied)
-			if copied.Node == "" && copied.Mark == "" {
+			if copied.Node == "" && copied.Mark == "" && !copied.Ignore {
 				copied.Node = name
 			}
 		}
@@ -718,7 +759,8 @@ func (cx *parseContext) addTextNode(dom *html.Node, marks []*Mark) errors.E {
 	return nil
 }
 
-// addElement tries to find a handler for the given tag and uses that to parse. If none is found, the element's content nodes are added directly.
+// addElement tries to find a handler for the given tag and uses that to parse. If none is found, the element's content nodes are added directly. A matching
+// rule may ignore the element (and its content), skip the element but parse its content, or close the current node before parsing.
 func (cx *parseContext) addElement(dom *html.Node, marks []*Mark, matchAfter *ParseRule) errors.E {
 	outerWS := cx.localPreserveWS
 	defer func() { cx.localPreserveWS = outerWS }()
@@ -731,10 +773,17 @@ func (cx *parseContext) addElement(dom *html.Node, marks []*Mark, matchAfter *Pa
 		normalizeList(dom)
 	}
 	rule, ruleAttrs := cx.parser.matchTag(dom, cx, matchAfter)
-	if rule == nil && ignoreTags[name] {
-		return cx.ignoreFallback(dom, marks)
+	ignore := ignoreTags[name]
+	if rule != nil {
+		ignore = rule.Ignore
 	}
-	if rule == nil {
+	switch {
+	case ignore:
+		return cx.ignoreFallback(dom, marks)
+	case rule == nil || rule.Skip || rule.CloseParent:
+		if rule != nil && rule.CloseParent {
+			cx.open = max(0, cx.open-1)
+		}
 		sync := false
 		oldNeedsBlock := cx.needsBlock
 		if blockTags[name] {
@@ -749,25 +798,39 @@ func (cx *parseContext) addElement(dom *html.Node, marks []*Mark, matchAfter *Pa
 		} else if dom.FirstChild == nil {
 			return cx.leafFallback(dom, marks)
 		}
-		innerMarks, errE := cx.readStyles(dom, marks)
-		if errE != nil {
-			return errE
+		innerMarks, ok := marks, true
+		if rule == nil || !rule.Skip {
+			var errE errors.E
+			innerMarks, ok, errE = cx.readStyles(dom, marks)
+			if errE != nil {
+				return errE
+			}
 		}
-		errE = cx.addAll(dom, innerMarks, nil, nil)
-		if errE != nil {
-			return errE
+		if ok {
+			errE := cx.addAll(dom, innerMarks, nil, nil)
+			if errE != nil {
+				return errE
+			}
 		}
 		if sync {
 			cx.sync(top)
 		}
 		cx.needsBlock = oldNeedsBlock
 		return nil
+	default:
+		innerMarks, ok, errE := cx.readStyles(dom, marks)
+		if errE != nil {
+			return errE
+		}
+		if !ok {
+			return nil
+		}
+		var continueAfter *ParseRule
+		if rule.Consuming != nil && !*rule.Consuming {
+			continueAfter = rule
+		}
+		return cx.addElementByRule(dom, rule, ruleAttrs, innerMarks, continueAfter)
 	}
-	innerMarks, errE := cx.readStyles(dom, marks)
-	if errE != nil {
-		return errE
-	}
-	return cx.addElementByRule(dom, rule, ruleAttrs, innerMarks, nil)
 }
 
 // leafFallback is called for leaf DOM nodes that would otherwise be ignored.

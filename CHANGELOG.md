@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `Node.nodesBetween`, `Node.textBetween`, `Fragment.nodesBetween`, and `Fragment.textBetween` methods.
+- Support for `consuming`, `ignore`, `skip`, and `closeParent` in JSON schema.
 
 ## [0.1.0] - 2026-06-14
 

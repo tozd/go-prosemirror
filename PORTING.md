@@ -127,14 +127,12 @@ Fragment.cut, Fragment.cutByIndex, Fragment.replaceChild, Fragment.addToStart, F
 Fragment.findDiffStart, Fragment.findDiffEnd, Fragment.findIndex, DOMParser.parseSlice (returns a Slice, deferred with
 replace.ts), ParseOptions.findPositions and all find\* methods of ParseContext (editor-only, maps DOM nodes to document
 positions to preserve a selection; trivially addable later), ParseOptions.topMatch, ParseOptions.context (a ResolvedPos,
-deferred with resolvedpos.ts), and ParseOptions.ruleFromNode (a per-parse callback supplied at the parse call, not part of
-the schema; it would be a func field on the Go ParseOptions, not a dialect concern, deferred only because nothing uses it).
+deferred with resolvedpos.ts), and ParseOptions.ruleFromNode (a per-parse callback supplied at the parse call, not part
+of the schema; it would be a func field on the Go ParseOptions, not a dialect concern, deferred only because nothing
+uses it).
 The schema function hooks TagParseRule.contentElement, TagParseRule.getContent, and StyleParseRule.clearMark cannot be
-carried at all (functions, which JSON cannot carry). The serializable parse-rule flags consuming, ignore, skip, and
-closeParent are not modeled either: they are not functions, but the target schemas do not use them and each needs matching
-from_dom.go parse behavior, so they are deferred (addable to the dialect and the parser together). A parse rule's node/mark
-target is implicit, because dialect parse rules are attached to their node or mark spec rather than written as a standalone
-rule list.
+carried at all (functions, which JSON cannot carry). A parse rule's node/mark target is implicit, because dialect parse
+rules are attached to their node or mark spec rather than written as a standalone rule list.
 
 ### File mapping
 
@@ -454,6 +452,10 @@ AttributeSpec.validate.
         Mark               string          // filled in by schemaRules
         Attrs              map[string]any  // tag rule: string value extracts from that HTML attribute, other JSON values are constants; style rule: all constants
         Context            string
+        Consuming          *bool           // nil or true: consume; non-nil false: keep trying later rules for the same element/style (tag and style rules)
+        Ignore             bool            // drop the matched element/style (and an element's content); leaves Node and Mark empty in schemaRules
+        Skip               bool            // drop the matched element but parse its content, without reading its styles (tag rules)
+        CloseParent        bool            // close the current node when an element matches (tag rules)
         Priority           *int            // nil means 50
         PreserveWhitespace PreserveWhitespace
         // unexported: selector cascadia.Selector (tag rules), styleProp/styleValue/hasStyleValue (style rules)
@@ -488,6 +490,16 @@ CSSOM value normalization are NOT replicated. This is the single fidelity bounda
 identically to the browser. Style rules produce marks, so they may only appear on mark types (a style rule on a node
 type is a compile error). readStyles applies the matching style rules' marks to the element's inline content. The cheap
 parse options From/To/TopNode are honored by Parse.
+
+The four serializable parse-rule flags drive addElement and readStyles. A matched rule with Ignore drops the element and
+its content (the default ignore list head/noscript/object/script/style/title still applies when no rule matches a tag);
+Skip drops the element but parses its content, and does not read its inline styles; CloseParent closes the current node
+before parsing the content. Consuming defaults to true; a non-nil false Consuming makes a matched rule non-consuming, so
+after applying it the parser keeps trying later rules for the same element (continueAfter in addElementByRule, which
+re-enters addElement with that rule as the matchAfter) or the same style property (the inner loop in readStyles), letting
+several rules contribute to one element or style. schemaRules leaves an Ignore rule without a Node or Mark target and
+matchedRuleAttrs computes no attributes for such a rule. readStyles returns a boolean that is false when a style rule with
+Ignore matched, which signals addElement to drop the element (its content is not parsed).
 
 matchTag and matchStyle return the computed per-match attrs as a second value instead of mutating the shared rule (the
 TypeScript code stores them on rule.attrs, which is not safe with concurrent parses). Tag rule attribute extraction
@@ -592,7 +604,11 @@ referenced by name and the HTML mapping is declarative.
             {"tag": "a[href]", "attrs": {"href": "href"}},
             {"tag": "svg", "namespace": "http://www.w3.org/2000/svg"},           // namespace constraint
             {"style": "font-weight=bold"},                                       // a style rule (mark types only)
-            {"tag": "pre", "preserveWhitespace": "full"}
+            {"tag": "pre", "preserveWhitespace": "full"},
+            {"tag": "br", "closeParent": true},                                  // close the current node
+            {"tag": "figure", "skip": true},                                     // drop element, keep its content
+            {"tag": "del", "ignore": true},                                      // drop element and its content
+            {"style": "font-weight", "consuming": false}                         // non-consuming: later rules also run
           ],
           "selectable": false              // editor-only keys accepted and ignored, see schema.go contract
         }
@@ -607,15 +623,21 @@ is a constant. Constant strings are not supported (no schema needs them; an expl
 one does). A style rule's "style" is either a property name ("font-weight", matching any value) or property and value
 ("font-weight=bold"); its "attrs" are all constants; it produces a mark, so it may only appear on a mark type (a style
 rule on a node type is a compile error), and only the element's own inline style declarations are read (no shorthand
-expansion, no CSSOM normalization). "toHTML" tags support "{attr}" placeholders (used for heading levels) and an
-optional "content" key holding a nested toHTML spec (the content hole sits at the innermost element). The fixture
-schemas live at model/testdata/example-schema.json (an example editor schema with URL-validated links and a restricted
-set of marks), model/testdata/basic-schema.json (an approximation of prosemirror-schema-basic plus lists, including a
-nested pre>code code block, used by parser test cases ported from test/test-dom.ts),
-model/testdata/custom-marks-schema.json (a non-spanning mark, for the corresponding test/test-dom.ts case),
-model/testdata/linebreak-schema.json (a linebreakReplacement hard_break and no pre node, for the test/test-dom.ts pre
-whitespace and line break replacement cases), and model/testdata/feature-schema.json (a CSS class selector, a style
-rule, and a namespace rule, exercising the general parse layer).
+expansion, no CSSOM normalization). Any rule may also carry the serializable flags "consuming", "ignore", "skip", and
+"closeParent": "ignore" drops the matched element or style (and an element's content), "skip" drops the element but
+parses its content, "closeParent" closes the current node when the element matches, and "consuming": false keeps trying
+later rules for the same element or style after this one matches. "consuming" and "ignore" act on both tag and style
+rules; "skip" and "closeParent" are element behaviors that only act on tag rules (they are accepted but inert on style
+rules). "toHTML" tags support "{attr}" placeholders (used for heading levels) and an optional "content" key holding a
+nested toHTML spec (the content hole sits at the innermost element). The fixture schemas live at
+model/testdata/example-schema.json (an example
+editor schema with URL-validated links and a restricted set of marks), model/testdata/basic-schema.json (an approximation
+of prosemirror-schema-basic plus lists, including a nested pre>code code block, used by parser test cases ported from
+test/test-dom.ts), model/testdata/custom-marks-schema.json (a non-spanning mark, for the corresponding test/test-dom.ts
+case), model/testdata/linebreak-schema.json (a linebreakReplacement hard_break and no pre node, for the test/test-dom.ts
+pre whitespace and line break replacement cases), model/testdata/feature-schema.json (a CSS class selector, a style rule,
+and a namespace rule, exercising the general parse layer), and model/testdata/flags-schema.json (the consuming, ignore,
+skip, and closeParent parse rule flags on tag and style rules).
 
 Named validators used by the example schema (each implementation registers its own functions with these semantics):
 
@@ -659,8 +681,8 @@ corpus of HTML sanitization test inputs; a single trailing newline is stripped f
    rule matches only the element's own inline longhand declarations (a font-weight rule matches style="font-weight:
    bold" but not style="font: bold ..."), where the browser-backed reference matches the shorthand too. Everything else
    parses identically. contentElement, getContent, ruleFromNode, findPositions, parseSlice, the ResolvedPos context
-   option, and the consuming/clearMark function hooks are not ported (coupled to deferred machinery, editor-only, or JS
-   functions the JSON dialect cannot carry). The white-space: pre detection for the style attribute is likewise read
+   option, and the clearMark function hook are not ported (coupled to deferred machinery, editor-only, or JS functions the
+   JSON dialect cannot carry). The white-space: pre detection for the style attribute is likewise read
    directly over the attribute string, emulating the CSSOM keyword normalization the reference depends on
    (case-sensitive lowercase property name, lowercased value matched against the white-space keyword set), so it agrees
    with the reference on uppercase and invalid values.
