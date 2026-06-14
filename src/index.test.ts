@@ -103,7 +103,7 @@ function validatedSchemaJSON(onInvalid: "rejectRule" | "drop"): SchemaJSON {
 const pathValidators: Record<string, Validator> = { path: (value) => typeof value === "string" && value.startsWith("/") }
 
 test("applies named validators: rejectRule drops the whole rule on failure", () => {
-  const schema = buildSchema(validatedSchemaJSON("rejectRule"), pathValidators)
+  const schema = buildSchema(validatedSchemaJSON("rejectRule"), { validators: pathValidators })
   // A valid value keeps the link.
   assert.equal(parse(schema, '<p><a href="/ok">x</a></p>').firstChild!.firstChild!.marks.length, 1)
   // An invalid value rejects the parse rule, so no link mark is applied.
@@ -111,7 +111,7 @@ test("applies named validators: rejectRule drops the whole rule on failure", () 
 })
 
 test("applies named validators: drop replaces the invalid value with the default", () => {
-  const schema = buildSchema(validatedSchemaJSON("drop"), pathValidators)
+  const schema = buildSchema(validatedSchemaJSON("drop"), { validators: pathValidators })
   const text = parse(schema, '<p><a href="javascript:bad">x</a></p>').firstChild!.firstChild!
   assert.equal(text.marks.length, 1)
   assert.isNull(text.marks[0].attrs.href)

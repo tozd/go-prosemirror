@@ -36,7 +36,7 @@ const exampleValidators: Record<string, Validator> = {
 // expansion order, matching the strict decoding on the Go side.
 function loadSchema(fileName: string): Schema {
   const json = JSON.parse(fs.readFileSync(path.join(testdataDir, fileName), "utf8")) as SchemaJSON
-  return buildSchema(json, exampleValidators)
+  return buildSchema(json, { validators: exampleValidators })
 }
 
 const dom = new JSDOM("")

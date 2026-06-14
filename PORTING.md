@@ -400,7 +400,8 @@ so the Go code panics if it happens.
         LinebreakReplacement *NodeType
         // unexported: nodeOrder, markOrder []string; domParser *DOMParser (built eagerly by NewSchema)
     }
-    func NewSchema(specJSON []byte, validators map[string]AttrValidator) (*Schema, errors.E)
+    type SchemaCallbacks struct { Validators map[string]AttrValidator }   // bundle of named hooks
+    func NewSchema(specJSON []byte, callbacks SchemaCallbacks) (*Schema, errors.E)
     func (s *Schema) Node(typeName string, attrs Attrs, content []*Node, marks []*Mark) (*Node, errors.E)  // createChecked semantics
     func (s *Schema) Text(text string, marks []*Mark) *Node
     func (s *Schema) Mark(typeName string, attrs Attrs) (*Mark, errors.E)

@@ -48,7 +48,7 @@ func schemaTestLoadSchema(t *testing.T, filename string, validators map[string]A
 	t.Helper()
 	specJSON, err := os.ReadFile(filepath.Join("testdata", filename)) //nolint:gosec
 	require.NoError(t, err)
-	schema, errE := NewSchema(specJSON, validators)
+	schema, errE := NewSchema(specJSON, SchemaCallbacks{Validators: validators})
 	require.NoError(t, errE, "% -+#.1v", errE)
 	return schema
 }
@@ -530,7 +530,7 @@ func TestNewSchemaSpecErrors(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			schema, errE := NewSchema([]byte(tc.spec), nil)
+			schema, errE := NewSchema([]byte(tc.spec), SchemaCallbacks{})
 			assert.Nil(t, schema)
 			assert.EqualError(t, errE, tc.wantErr)
 		})
@@ -558,7 +558,7 @@ func TestNewSchemaEditorOnlyKeys(t *testing.T) {
 			"bold": {"inclusive": false, "toHTML": {"tag": "b"}}
 		}
 	}`
-	schema, errE := NewSchema([]byte(spec), nil)
+	schema, errE := NewSchema([]byte(spec), SchemaCallbacks{})
 	require.NoError(t, errE, "% -+#.1v", errE)
 	assert.NotNil(t, schema.Nodes["para"])
 	assert.NotNil(t, schema.Marks["bold"])
@@ -581,7 +581,7 @@ const schemaTestWidgetSchemaJSON = `{
 
 func TestNewSchemaBuiltinValidators(t *testing.T) {
 	t.Parallel()
-	schema, errE := NewSchema([]byte(schemaTestWidgetSchemaJSON), nil)
+	schema, errE := NewSchema([]byte(schemaTestWidgetSchemaJSON), SchemaCallbacks{})
 	require.NoError(t, errE, "% -+#.1v", errE)
 	widget := schema.Nodes["widget"]
 	require.NotNil(t, widget)

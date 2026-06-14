@@ -31,7 +31,7 @@ func newNodeTestBuilder(t *testing.T) *nodeTestBuilder {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join("testdata", "basic-schema.json"))
 	require.NoError(t, err)
-	schema, errE := NewSchema(data, nil)
+	schema, errE := NewSchema(data, SchemaCallbacks{})
 	require.NoError(t, errE, "% -+#.1v", errE)
 	return &nodeTestBuilder{t: t, schema: schema}
 }
@@ -464,7 +464,7 @@ func TestNodeCheck(t *testing.T) {
 
 	t.Run("notices wrong attribute types", func(t *testing.T) {
 		t.Parallel()
-		custom, errE := NewSchema([]byte(nodeTestValidateSchemaJSON), nil)
+		custom, errE := NewSchema([]byte(nodeTestValidateSchemaJSON), SchemaCallbacks{})
 		require.NoError(t, errE, "% -+#.1v", errE)
 		node, errE := custom.Nodes["image"].Create(Attrs{"src": true}, nil, nil)
 		require.NoError(t, errE, "% -+#.1v", errE)
@@ -608,7 +608,7 @@ func TestNodeFromJSONErrors(t *testing.T) {
 
 	t.Run("rejects attribute values failing validation", func(t *testing.T) {
 		t.Parallel()
-		custom, errE := NewSchema([]byte(nodeTestValidateSchemaJSON), nil)
+		custom, errE := NewSchema([]byte(nodeTestValidateSchemaJSON), SchemaCallbacks{})
 		require.NoError(t, errE, "% -+#.1v", errE)
 		_, errE = custom.NodeFromJSON([]byte(`{"type":"image","attrs":{"src":5}}`))
 		assert.EqualError(t, errE, "unexpected attribute value type")

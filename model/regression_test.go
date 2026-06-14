@@ -91,7 +91,7 @@ func TestParseCustomSchemaTopNode(t *testing.T) {
 			"text": {"group": "inline"}
 		}
 	}`)
-	s, errE := NewSchema(spec, nil)
+	s, errE := NewSchema(spec, SchemaCallbacks{})
 	require.NoError(t, errE, "% -+#.1v", errE)
 
 	doc, errE := ParseHTML(s, "<p>hello</p>", ParseOptions{})
@@ -213,7 +213,7 @@ func TestSchemaRulesOrder(t *testing.T) {
 
 	tags := func(t *testing.T, spec string) string {
 		t.Helper()
-		s, errE := NewSchema([]byte(spec), nil)
+		s, errE := NewSchema([]byte(spec), SchemaCallbacks{})
 		require.NoError(t, errE, "% -+#.1v", errE)
 		rules := schemaRules(s)
 		names := make([]string, 0, len(rules))
@@ -349,7 +349,7 @@ func TestParseRuleFlagsDialect(t *testing.T) {
 			"underline": {"toHTML": {"tag": "u"}, "parseHTML": [{"tag": "u"}, {"style": "font-style=oblique", "ignore": true}]}
 		}
 	}`)
-	s, errE := NewSchema(spec, nil)
+	s, errE := NewSchema(spec, SchemaCallbacks{})
 	require.NoError(t, errE, "% -+#.1v", errE)
 
 	// The flags are decoded onto the rules, and schemaRules fills the node or mark target of every rule except the ignore ones.
@@ -409,7 +409,7 @@ func TestNewSchemaNullParseRuleEntry(t *testing.T) {
 			"text": {"group": "inline"}
 		}
 	}`)
-	_, errE := NewSchema(nodeSpec, nil)
+	_, errE := NewSchema(nodeSpec, SchemaCallbacks{})
 	assert.EqualError(t, errE, "invalid value for key in node spec")
 	assert.EqualError(t, errors.Cause(errE), "tag parse rule is missing a tag")
 
@@ -423,7 +423,7 @@ func TestNewSchemaNullParseRuleEntry(t *testing.T) {
 			"bold": {"toHTML": {"tag": "b"}, "parseHTML": [null]}
 		}
 	}`)
-	_, errE = NewSchema(markSpec, nil)
+	_, errE = NewSchema(markSpec, SchemaCallbacks{})
 	assert.EqualError(t, errE, "invalid value for key in mark spec")
 	assert.EqualError(t, errors.Cause(errE), "tag parse rule is missing a tag")
 }
@@ -453,7 +453,7 @@ func TestNewSchemaNullSpecObject(t *testing.T) {
 	for name, tc := range cases {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			_, errE := NewSchema([]byte(tc.spec), nil)
+			_, errE := NewSchema([]byte(tc.spec), SchemaCallbacks{})
 			assert.EqualError(t, errE, tc.wantErr)
 		})
 	}
@@ -471,7 +471,7 @@ func TestNewSchemaNullAttrsObject(t *testing.T) {
 			"text": {"group": "inline"}
 		}
 	}`)
-	_, errE := NewSchema(spec, nil)
+	_, errE := NewSchema(spec, SchemaCallbacks{})
 	require.NoError(t, errE, "% -+#.1v", errE)
 }
 
@@ -491,7 +491,7 @@ func regressionAttrSchema(t *testing.T) *Schema {
 			"text": {"group": "inline"}
 		}
 	}`)
-	s, errE := NewSchema(spec, nil)
+	s, errE := NewSchema(spec, SchemaCallbacks{})
 	require.NoError(t, errE, "% -+#.1v", errE)
 	return s
 }
@@ -542,7 +542,7 @@ func TestSerializeNestedToHTML(t *testing.T) {
 			"text": {"group": "inline"}
 		}
 	}`)
-	s, errE := NewSchema(spec, nil)
+	s, errE := NewSchema(spec, SchemaCallbacks{})
 	require.NoError(t, errE, "% -+#.1v", errE)
 
 	block, errE := s.Node("code_block", nil, []*Node{s.Text("some code", nil)}, nil)
@@ -576,7 +576,7 @@ func TestSerializeLowercasesTagsAndAttrs(t *testing.T) {
 			"text": {"group": "inline"}
 		}
 	}`)
-	s, errE := NewSchema(spec, nil)
+	s, errE := NewSchema(spec, SchemaCallbacks{})
 	require.NoError(t, errE, "% -+#.1v", errE)
 
 	box, errE := s.Node("box", Attrs{"dataValue": "v"}, []*Node{s.Text("x", nil)}, nil)

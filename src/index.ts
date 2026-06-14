@@ -227,12 +227,20 @@ export function translateMarkSpec(json: MarkSpecJSON, validators: Record<string,
   return spec
 }
 
-// Builds a prosemirror-model Schema from a parsed schema JSON object. The validators registry resolves the validate names referenced by attribute specs;
-// it defaults to empty, so a schema that references a validator must supply it (an unknown validator throws during HTML parsing).
+// SchemaCallbacks bundles the function hooks supplied to NewSchema. It contains schema callbacks since functions cannot live in the shared JSON.
+export interface SchemaCallbacks {
+  // validators registers named attribute validators which attribute specs reference by their validate field. A name the schema references that is absent here, and
+  // is not a built-in type, throws during HTML parsing.
+  validators?: Record<string, Validator>
+}
+
+// Builds a prosemirror-model Schema from a parsed schema JSON object, with the named function hooks the schema references supplied in callbacks. The validators
+// default to empty, so a schema that references a validator must supply it (an unknown validator throws during HTML parsing).
 //
 // JSON.parse preserves the declaration order of (non-numeric) object keys, which determines mark rank, parse rule precedence, and group expansion order,
 // matching the strict decoding on the Go side; pass the object from JSON.parse to preserve that order.
-export function buildSchema(spec: SchemaJSON, validators: Record<string, Validator> = {}): Schema {
+export function buildSchema(spec: SchemaJSON, callbacks: SchemaCallbacks = {}): Schema {
+  const validators = callbacks.validators ?? {}
   const nodes: Record<string, NodeSpec> = {}
   for (const [name, nodeSpec] of Object.entries(spec.nodes)) {
     nodes[name] = translateNodeSpec(nodeSpec, validators)

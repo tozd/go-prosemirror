@@ -16,7 +16,7 @@ func contentTestSchema(t *testing.T) *Schema {
 	t.Helper()
 	specJSON, err := os.ReadFile("testdata/basic-schema.json")
 	require.NoError(t, err)
-	schema, errE := NewSchema(specJSON, nil)
+	schema, errE := NewSchema(specJSON, SchemaCallbacks{})
 	require.NoError(t, errE, "% -+#.1v", errE)
 	return schema
 }

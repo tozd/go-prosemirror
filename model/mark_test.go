@@ -48,10 +48,10 @@ func markTestSetup(t *testing.T) *markTestFixture {
 
 	data, err := os.ReadFile("testdata/basic-schema.json")
 	require.NoError(t, err)
-	basic, errE := NewSchema(data, nil)
+	basic, errE := NewSchema(data, SchemaCallbacks{})
 	require.NoError(t, errE, "% -+#.1v", errE)
 
-	custom, errE := NewSchema([]byte(markTestCustomSchemaJSON), nil)
+	custom, errE := NewSchema([]byte(markTestCustomSchemaJSON), SchemaCallbacks{})
 	require.NoError(t, errE, "% -+#.1v", errE)
 
 	mark := func(s *Schema, name string, attrs Attrs) *Mark {

@@ -63,7 +63,7 @@ func fixtureSchema(t *testing.T, name string) *Schema {
 	}
 	specJSON, err := os.ReadFile(filepath.Join("testdata", name)) //nolint:gosec
 	require.NoError(t, err)
-	s, errE := NewSchema(specJSON, fixtureValidators())
+	s, errE := NewSchema(specJSON, SchemaCallbacks{Validators: fixtureValidators()})
 	require.NoError(t, errE, "% -+#.1v", errE)
 	fixtureSchemas[name] = s
 	return s

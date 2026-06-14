@@ -1156,9 +1156,17 @@ type Schema struct {
 	domParser *DOMParser
 }
 
-// NewSchema constructs a schema from its JSON specification. The validators map registers named attribute validators which attribute specs can reference by
-// name; it may be nil when no named validators are used.
-func NewSchema(specJSON []byte, validators map[string]AttrValidator) (*Schema, errors.E) {
+// SchemaCallbacks bundles the function hooks supplied to NewSchema. It contains schema callbacks since functions cannot live in the shared JSON.
+type SchemaCallbacks struct {
+	// Validators registers named attribute validators which attribute specs reference by their validate field. It may be nil when the schema uses no named
+	// validators (a validate naming a built-in type does not need an entry). A name the schema references that is absent here, and is not a built-in type, is
+	// an error.
+	Validators map[string]AttrValidator
+}
+
+// NewSchema constructs a schema from its JSON specification, with the named function hooks the schema references supplied in callbacks.
+func NewSchema(specJSON []byte, callbacks SchemaCallbacks) (*Schema, errors.E) {
+	validators := callbacks.Validators
 	spec, errE := parseSchemaSpec(specJSON)
 	if errE != nil {
 		return nil, errE
