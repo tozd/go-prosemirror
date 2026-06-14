@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-14
+
 ### Added
 
 - Port of prosemirror-model, v1.25.8.
 
-[unreleased]: https://gitlab.com/tozd/go/prosemirror/-/commits/main
+[unreleased]: https://gitlab.com/tozd/go/prosemirror/-/compare/v0.1.0...main
 
 <!-- markdownlint-disable-file MD024 -->
+
+[0.1.0]: https://gitlab.com/tozd/go/prosemirror/-/tags/v0.1.0
