@@ -126,10 +126,8 @@ Node.rangeHasMark, Node.nodeAt, Node.childAfter, Node.childBefore, Node.canRepla
 Fragment.cut, Fragment.cutByIndex, Fragment.replaceChild, Fragment.addToStart, Fragment.addToEnd, Fragment.descendants,
 Fragment.findDiffStart, Fragment.findDiffEnd, Fragment.findIndex, DOMParser.parseSlice (returns a Slice, deferred with
 replace.ts), ParseOptions.findPositions and all find\* methods of ParseContext (editor-only, maps DOM nodes to document
-positions to preserve a selection; trivially addable later), ParseOptions.topMatch, ParseOptions.context (a ResolvedPos,
-deferred with resolvedpos.ts), and ParseOptions.ruleFromNode (a per-parse callback supplied at the parse call, not part
-of the schema; it would be a func field on the Go ParseOptions, not a dialect concern, deferred only because nothing
-uses it).
+positions to preserve a selection; trivially addable later), ParseOptions.topMatch, and ParseOptions.context (a
+ResolvedPos, deferred with resolvedpos.ts).
 The schema function hooks TagParseRule.contentElement, TagParseRule.getContent, and StyleParseRule.clearMark cannot be
 carried at all (functions, which JSON cannot carry). A parse rule's node/mark target is implicit, because dialect parse
 rules are attached to their node or mark spec rather than written as a standalone rule list.
@@ -466,6 +464,7 @@ AttributeSpec.validate.
         From               *int            // child index of the top DOM node to start at; nil means first
         To                 *int            // child index to stop at, exclusive; nil means past last
         TopNode            *Node           // top container type and attrs; nil means the schema top node type
+        RuleFromNode       func(dom *html.Node) *ParseRule  // per-element rule override tried before schema rules; nil result falls through (TS ruleFromNode)
     }
     type DOMParser struct {
         Schema *Schema
@@ -490,7 +489,12 @@ last declaration winning), never a computed style: shorthand expansion (style="f
 CSSOM value normalization are NOT replicated. This is the single fidelity boundary of the port; everything else parses
 identically to the browser. Style rules produce marks, so they may only appear on mark types (a style rule on a node
 type is a compile error). readStyles applies the matching style rules' marks to the element's inline content. The cheap
-parse options From/To/TopNode are honored by Parse.
+parse options From/To/TopNode are honored by Parse, as is ParseOptions.RuleFromNode (the TypeScript ruleFromNode): when
+set it is consulted for every element before the schema tag rules, a non-nil result being used directly (its Attrs taken
+verbatim, not extracted from the element) and a nil result falling through to matchTag. Such a rule has no position in the
+rule list, so a non-consuming one does not continue (the matched-rule handle passed to addElementByRule as continueAfter
+is nil). Being a function, it lives on the Go ParseOptions rather than the schema JSON; the TypeScript side reaches it
+through prosemirror-model's own ParseOptions, which htmlToDoc forwards.
 
 The four serializable parse-rule flags drive addElement and readStyles. A matched rule with Ignore drops the element and
 its content (the default ignore list head/noscript/object/script/style/title still applies when no rule matches a tag);
@@ -681,8 +685,8 @@ corpus of HTML sanitization test inputs; a single trailing newline is stripped f
    resulting behavioral boundary is that style shorthands are not expanded and CSSOM values are not normalized: a style
    rule matches only the element's own inline longhand declarations (a font-weight rule matches style="font-weight:
    bold" but not style="font: bold ..."), where the browser-backed reference matches the shorthand too. Everything else
-   parses identically. contentElement, getContent, ruleFromNode, findPositions, parseSlice, the ResolvedPos context
-   option, and the clearMark function hook are not ported (coupled to deferred machinery, editor-only, or JS functions the
+   parses identically. contentElement, getContent, findPositions, parseSlice, the ResolvedPos context option, and the
+   clearMark function hook are not ported (coupled to deferred machinery, editor-only, or JS functions the
    JSON dialect cannot carry). The white-space: pre detection for the style attribute is likewise read
    directly over the attribute string, emulating the CSSOM keyword normalization the reference depends on
    (case-sensitive lowercase property name, lowercased value matched against the white-space keyword set), so it agrees

@@ -70,6 +70,13 @@ type ParseOptions struct {
 
 	// TopNode, when set, provides the type and attributes of a node to use as the top container instead of the schema's default top node type.
 	TopNode *Node
+
+	// RuleFromNode, when set, is consulted for every element before the schema's tag rules are tried. When it returns a non-nil rule, that rule is used for the
+	// element directly, in place of matching the schema rules: any Tag on the returned rule is ignored (the element is already chosen) and its Attrs, when set,
+	// are used as the node or mark attributes verbatim, not extracted from the element. When it returns nil, the schema rules are matched as usual. Because such
+	// a rule has no position in the rule list, a non-consuming one (Consuming pointing to false) does not continue to further rules. It is the counterpart of
+	// the TypeScript ruleFromNode option, supplied per parse because a function cannot live in the schema JSON.
+	RuleFromNode func(dom *html.Node) *ParseRule
 }
 
 // ParseRule is a parse rule targeting a DOM element (when Tag is set) or an inline style declaration (when Style is set). Exactly one of Tag and Style is
@@ -772,7 +779,18 @@ func (cx *parseContext) addElement(dom *html.Node, marks []*Mark, matchAfter *Pa
 	if listTags[name] && cx.parser.normalizeLists {
 		normalizeList(dom)
 	}
-	rule, ruleAttrs := cx.parser.matchTag(dom, cx, matchAfter)
+	var rule, ruleID *ParseRule
+	var ruleAttrs Attrs
+	if cx.options.RuleFromNode != nil {
+		rule = cx.options.RuleFromNode(dom)
+		if rule != nil {
+			ruleAttrs = rule.Attrs
+		}
+	}
+	if rule == nil {
+		ruleID, ruleAttrs = cx.parser.matchTag(dom, cx, matchAfter)
+		rule = ruleID
+	}
 	ignore := ignoreTags[name]
 	if rule != nil {
 		ignore = rule.Ignore
@@ -827,7 +845,7 @@ func (cx *parseContext) addElement(dom *html.Node, marks []*Mark, matchAfter *Pa
 		}
 		var continueAfter *ParseRule
 		if rule.Consuming != nil && !*rule.Consuming {
-			continueAfter = rule
+			continueAfter = ruleID
 		}
 		return cx.addElementByRule(dom, rule, ruleAttrs, innerMarks, continueAfter)
 	}

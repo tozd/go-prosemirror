@@ -295,7 +295,8 @@ func TestParseRuleFlags(t *testing.T) {
 	})
 
 	// Skip: the span is skipped (its content is parsed but the element and its inline styles are not), so the font-weight style that would otherwise produce an em
-	// mark is not read. Mirrors test-dom "ignores styles on skipped nodes", which drives skip through ruleFromNode, an editor-only option the dialect cannot carry.
+	// mark is not read. This is the skip-tag-rule analogue of test-dom "ignores styles on skipped nodes"; that test drives skip through ParseOptions.RuleFromNode,
+	// which is ported in TestParseRuleFromNode.
 	t.Run("ignores styles on skipped nodes", func(t *testing.T) {
 		t.Parallel()
 		emRule := &ParseRule{Style: "font-weight=bold", Mark: "em"} //nolint:exhaustruct
@@ -394,6 +395,85 @@ func TestParseRuleFlagsDialect(t *testing.T) {
 	assert.Equal(t, "<p>ac</p>", parse(t, "<p>a<del>b</del>c</p>"))
 	assert.Equal(t, "<p><em><strong>one</strong></em></p>", parse(t, "<p><span style='font-weight: 800'>one</span></p>"))
 	assert.Equal(t, "<p>xz</p>", parse(t, "<p>x<span style='font-style: oblique'>y</span>z</p>"))
+}
+
+// TestParseRuleFromNode checks the ParseOptions.RuleFromNode option: a per-parse callback consulted for every element before the schema's tag rules. When it
+// returns a rule that rule is used directly (with its Attrs taken verbatim), and when it returns nil the schema rules are matched as usual. It is a function, so
+// it is supplied per parse rather than through the schema JSON, and the fixture suite (which parses with default options) cannot cover it. It mirrors the
+// prosemirror-model test-dom "ignores styles on skipped nodes" case, which is the only upstream use of ruleFromNode.
+func TestParseRuleFromNode(t *testing.T) {
+	t.Parallel()
+
+	s := fixtureSchema(t, "basic-schema.json")
+
+	parse := func(t *testing.T, input string, ruleFromNode func(*html.Node) *ParseRule, extraRules ...*ParseRule) string {
+		t.Helper()
+		parser, errE := newDOMParser(s, append(extraRules, schemaRules(s)...))
+		require.NoError(t, errE, "% -+#.1v", errE)
+		div := regressionParseFragment(t, input)
+		doc, errE := parser.Parse(div, ParseOptions{RuleFromNode: ruleFromNode}) //nolint:exhaustruct
+		require.NoError(t, errE, "% -+#.1v", errE)
+		return SerializeHTML(doc)
+	}
+
+	isElement := func(dom *html.Node, name string) bool {
+		return dom.Type == html.ElementNode && nodeName(dom) == name
+	}
+
+	// The faithful port of test-dom "ignores styles on skipped nodes": RuleFromNode skips the span, so its inline style is not read and the em mark the
+	// font-weight rule would apply is suppressed, while its content is kept. Without RuleFromNode the same style is read and wraps the content in an em mark.
+	t.Run("ignores styles on skipped nodes", func(t *testing.T) {
+		t.Parallel()
+		emRule := &ParseRule{Style: "font-weight=bold", Mark: "em"} //nolint:exhaustruct
+		skipSpan := func(dom *html.Node) *ParseRule {
+			if isElement(dom, "span") {
+				return &ParseRule{Skip: true} //nolint:exhaustruct
+			}
+			return nil
+		}
+		input := "<p>abc <span style='font-weight: bold'>def</span></p>"
+		assert.Equal(t, "<p>abc def</p>", parse(t, input, skipSpan, emRule))
+		assert.Equal(t, "<p>abc <em>def</em></p>", parse(t, input, nil, emRule))
+	})
+
+	// A returned rule overrides the schema rules for the element, and its Attrs are used verbatim as the node attributes (here mapping every paragraph to a
+	// level 2 heading).
+	t.Run("maps an element to a node with attributes", func(t *testing.T) {
+		t.Parallel()
+		asHeading := func(dom *html.Node) *ParseRule {
+			if isElement(dom, "p") {
+				return &ParseRule{Node: "heading", Attrs: Attrs{"level": float64(2)}} //nolint:exhaustruct
+			}
+			return nil
+		}
+		assert.Equal(t, "<h2>x</h2>", parse(t, "<p>x</p>", asHeading))
+	})
+
+	// Returning nil falls through to the schema rules: only the blockquote is handled by RuleFromNode (ignored), and the paragraph parses normally.
+	t.Run("returns nil to use the schema rules", func(t *testing.T) {
+		t.Parallel()
+		ignoreBlockquote := func(dom *html.Node) *ParseRule {
+			if isElement(dom, "blockquote") {
+				return &ParseRule{Ignore: true} //nolint:exhaustruct
+			}
+			return nil
+		}
+		assert.Equal(t, "<p>kept</p>", parse(t, "<blockquote>dropped</blockquote><p>kept</p>", ignoreBlockquote))
+	})
+
+	// A rule from RuleFromNode has no position in the rule list, so a non-consuming one does not continue to the schema ol rule: the list content is parsed
+	// straight into the blockquote, unlike the non-consuming schema rule in TestParseRuleFlags which yields a nested ol.
+	t.Run("a non-consuming rule does not continue to other rules", func(t *testing.T) {
+		t.Parallel()
+		consumingFalse := false
+		asBlockquote := func(dom *html.Node) *ParseRule {
+			if isElement(dom, "ol") {
+				return &ParseRule{Node: "blockquote", Consuming: &consumingFalse} //nolint:exhaustruct
+			}
+			return nil
+		}
+		assert.Equal(t, "<blockquote><p>one</p></blockquote>", parse(t, "<ol><p>one</p></ol>", asBlockquote))
+	})
 }
 
 // TestNewSchemaNullParseRuleEntry checks that a JSON null entry inside a parseHTML array is rejected at NewSchema rather than causing a nil pointer
