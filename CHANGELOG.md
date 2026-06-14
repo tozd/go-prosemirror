@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `Node.nodesBetween`, `Node.textBetween`, `Fragment.nodesBetween`, and `Fragment.textBetween` methods.
+
 ## [0.1.0] - 2026-06-14
 
 ### Added

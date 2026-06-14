@@ -3,8 +3,6 @@
 package model
 
 import (
-	"strings"
-
 	"gitlab.com/tozd/go/errors"
 	"gitlab.com/tozd/go/x"
 )
@@ -87,19 +85,32 @@ func (n *Node) ForEach(fn func(node *Node, offset, index int)) {
 	n.Content.ForEach(fn)
 }
 
-// TextContent concatenates all the text nodes found in this node and its children.
+// TextContent concatenates all the text nodes found in this node and its children. The reference
+// also returns spec.leafText for a leaf with that spec; the schema dialect has no leafText spec, so a
+// leaf with no text yields "" here (TextBetween over its empty content). To include text for leaf
+// nodes, call TextBetween with a leafText callback.
 func (n *Node) TextContent() string {
 	if n.IsText() {
 		return n.Text
 	}
-	if n.IsLeaf() {
-		return ""
+	return n.TextBetween(0, n.Content.Size, "", nil)
+}
+
+// NodesBetween invokes fn for each node between the two positions in this node's content, descending into a node's
+// children unless fn returns false for it. It is a port of Node.nodesBetween from prosemirror-model.
+func (n *Node) NodesBetween(from, to int, fn NodesBetweenFunc) {
+	n.Content.NodesBetween(from, to, fn, 0, n)
+}
+
+// TextBetween extracts the text between the two positions in this node. For a text node it slices the node's own text;
+// otherwise it concatenates the text of the content between the positions, inserting blockSeparator between separate block
+// nodes and rendering leaf nodes with leafText. It is a port of Node.textBetween (and the TextNode.textBetween override)
+// from prosemirror-model.
+func (n *Node) TextBetween(from, to int, blockSeparator string, leafText func(node *Node) string) string {
+	if n.IsText() {
+		return utf16Slice(n.Text, from, to)
 	}
-	var sb strings.Builder
-	for _, child := range n.Content.Content {
-		sb.WriteString(child.TextContent())
-	}
-	return sb.String()
+	return n.Content.TextBetween(from, to, blockSeparator, leafText)
 }
 
 // FirstChild returns this node's first child, or nil when there are no children.
@@ -383,4 +394,40 @@ func utf16Length(s string) int {
 		}
 	}
 	return length
+}
+
+// utf16Slice returns the substring of s between the UTF-16 code unit offsets start and end, matching JavaScript
+// String.prototype.slice for non-negative offsets: start and end are clamped to [0, the UTF-16 length] and end is clamped
+// to be at least start. Offsets are read at rune boundaries; an offset that would fall between the two code units of a
+// non-BMP rune is rounded up to the next rune boundary. Positions in this package count UTF-16 code units (see
+// utf16Length), so this is the slicing TextBetween needs for text nodes.
+func utf16Slice(s string, start, end int) string {
+	if start < 0 {
+		start = 0
+	}
+	if end < start {
+		end = start
+	}
+	startByte, endByte := len(s), len(s)
+	startSet := false
+	u16 := 0
+	for i, r := range s {
+		if !startSet && u16 >= start {
+			startByte = i
+			startSet = true
+		}
+		if u16 >= end {
+			endByte = i
+			break
+		}
+		if r > 0xFFFF { //nolint:mnd
+			u16 += 2
+		} else {
+			u16++
+		}
+	}
+	if startByte > endByte {
+		startByte = endByte
+	}
+	return s[startByte:endByte]
 }

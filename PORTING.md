@@ -117,15 +117,24 @@ The parser is as general as the model and the serializer: NewSchema accepts any 
 supports full CSS selectors, style parse rules, and namespace matching. The line for what is not ported is drawn at
 coupling to deferred machinery (Slice, replace, ResolvedPos) or genuinely editor-only features.
 
+Node.nodesBetween, Node.textBetween, Fragment.nodesBetween, and Fragment.textBetween are ported (text extraction over a
+document is used by consumers), without the node spec leafText fallback the schema dialect does not have: leaf text is
+supplied through the leafText callback argument.
+
 Skipped members inside ported files (transform-era or editor-only): Node.cut, Node.slice, Node.replace, Node.resolve,
-Node.nodesBetween, Node.rangeHasMark, Node.nodeAt, Node.childAfter, Node.childBefore, Node.canReplace,
-Node.canReplaceWith, Node.canAppend, Node.textBetween, Fragment.cut, Fragment.cutByIndex, Fragment.replaceChild,
-Fragment.addToStart, Fragment.addToEnd, Fragment.nodesBetween, Fragment.descendants, Fragment.textBetween,
+Node.rangeHasMark, Node.nodeAt, Node.childAfter, Node.childBefore, Node.canReplace, Node.canReplaceWith, Node.canAppend,
+Fragment.cut, Fragment.cutByIndex, Fragment.replaceChild, Fragment.addToStart, Fragment.addToEnd, Fragment.descendants,
 Fragment.findDiffStart, Fragment.findDiffEnd, Fragment.findIndex, DOMParser.parseSlice (returns a Slice, deferred with
 replace.ts), ParseOptions.findPositions and all find\* methods of ParseContext (editor-only, maps DOM nodes to document
 positions to preserve a selection; trivially addable later), ParseOptions.topMatch, ParseOptions.context (a ResolvedPos,
-deferred with resolvedpos.ts), ParseOptions.ruleFromNode, TagParseRule.contentElement, TagParseRule.getContent, and the
-consuming/clearMark function hooks (functions, which JSON cannot carry).
+deferred with resolvedpos.ts), and ParseOptions.ruleFromNode (a per-parse callback supplied at the parse call, not part of
+the schema; it would be a func field on the Go ParseOptions, not a dialect concern, deferred only because nothing uses it).
+The schema function hooks TagParseRule.contentElement, TagParseRule.getContent, and StyleParseRule.clearMark cannot be
+carried at all (functions, which JSON cannot carry). The serializable parse-rule flags consuming, ignore, skip, and
+closeParent are not modeled either: they are not functions, but the target schemas do not use them and each needs matching
+from_dom.go parse behavior, so they are deferred (addable to the dialect and the parser together). A parse rule's node/mark
+target is implicit, because dialect parse rules are attached to their node or mark spec rather than written as a standalone
+rule list.
 
 ### File mapping
 
@@ -199,6 +208,7 @@ map[string]any.
         Size    int
     }
     var EmptyFragment = &Fragment{Content: nil, Size: 0}             // TS Fragment.empty
+    type NodesBetweenFunc func(node *Node, pos int, parent *Node, index int) bool  // callback for NodesBetween; return false to skip a node's children
     func newFragment(content []*Node, size int) *Fragment            // size < 0 means compute from content
     func (f *Fragment) Append(other *Fragment) *Fragment
     func (f *Fragment) Eq(other *Fragment) bool
@@ -208,6 +218,8 @@ map[string]any.
     func (f *Fragment) Child(index int) *Node                        // panics when out of range
     func (f *Fragment) MaybeChild(index int) *Node
     func (f *Fragment) ForEach(fn func(node *Node, offset, index int))
+    func (f *Fragment) NodesBetween(from, to int, fn NodesBetweenFunc, nodeStart int, parent *Node)               // TS Fragment.nodesBetween
+    func (f *Fragment) TextBetween(from, to int, blockSeparator string, leafText func(node *Node) string) string  // TS Fragment.textBetween
     func (f *Fragment) String() string
     func (f *Fragment) toStringInner() string
     func (f *Fragment) ToJSON() []any                                // nil when empty
@@ -233,7 +245,9 @@ Everywhere the TypeScript code calls Fragment.from with an array or a single nod
     func (n *Node) Child(index int) *Node
     func (n *Node) MaybeChild(index int) *Node
     func (n *Node) ForEach(fn func(node *Node, offset, index int))
-    func (n *Node) TextContent() string        // direct recursion instead of textBetween (textBetween is not ported)
+    func (n *Node) TextContent() string        // n.Text for a text node, else TextBetween(0, content.size, "") (TS textContent / TextNode override)
+    func (n *Node) NodesBetween(from, to int, fn NodesBetweenFunc)                                            // TS Node.nodesBetween
+    func (n *Node) TextBetween(from, to int, blockSeparator string, leafText func(node *Node) string) string  // TS Node.textBetween / TextNode.textBetween
     func (n *Node) FirstChild() *Node
     func (n *Node) LastChild() *Node
     func (n *Node) Eq(other *Node) bool

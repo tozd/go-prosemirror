@@ -1,8 +1,9 @@
 // Ported from prosemirror-model/test/test-node.ts.
 //
-// The describe blocks for cut, nodesBetween (between), and textBetween are not ported because the port skips those members (see PORTING.md).
-// The toDebugString and leafText spec options do not exist in the schema JSON dialect, so the tests exercising them are adapted to assert the
-// default String and TextContent behavior instead. Fragment behavior reachable through the public API (FragmentFromArray, Append, ForEach,
+// The describe block for cut is not ported because the port skips Node.cut (see PORTING.md). nodesBetween (between) and textBetween are ported
+// and covered by TestNodeNodesBetween and TestNodeTextBetween. The toDebugString and leafText spec options do not exist in the schema JSON
+// dialect, so the tests exercising them are adapted to assert the default String and TextContent behavior instead (and textBetween supplies leaf
+// text through the leafText callback argument rather than a node spec). Fragment behavior reachable through the public API (FragmentFromArray, Append, ForEach,
 // Child) is covered here as well, since fragment.ts has no dedicated test file.
 
 package model //nolint:testpackage
@@ -165,6 +166,86 @@ func TestNodeTextContent(t *testing.T) {
 	t.Run("is empty for a leaf node", func(t *testing.T) {
 		t.Parallel()
 		assert.Empty(t, b.hr().TextContent())
+	})
+}
+
+func TestNodeNodesBetween(t *testing.T) {
+	t.Parallel()
+	b := newNodeTestBuilder(t)
+
+	t.Run("iterates over the nodes in document order", func(t *testing.T) {
+		t.Parallel()
+		d := b.doc(b.p(b.text("foo")), b.p(b.text("bar"), b.br(), b.text("baz")))
+		var texts []string
+		d.NodesBetween(0, d.Content.Size, func(node *Node, _ int, _ *Node, _ int) bool {
+			if node.IsText() {
+				texts = append(texts, node.Text)
+			}
+			return true
+		})
+		assert.Equal(t, []string{"foo", "bar", "baz"}, texts)
+	})
+
+	t.Run("does not descend when the callback returns false", func(t *testing.T) {
+		t.Parallel()
+		d := b.doc(b.blockquote(b.p(b.text("inside"))), b.p(b.text("after")))
+		var texts []string
+		d.NodesBetween(0, d.Content.Size, func(node *Node, _ int, _ *Node, _ int) bool {
+			if node.Type.Name == "blockquote" {
+				return false
+			}
+			if node.IsText() {
+				texts = append(texts, node.Text)
+			}
+			return true
+		})
+		assert.Equal(t, []string{"after"}, texts)
+	})
+}
+
+func TestNodeTextBetween(t *testing.T) {
+	t.Parallel()
+	b := newNodeTestBuilder(t)
+
+	t.Run("works when passing a custom function as leafText", func(t *testing.T) {
+		t.Parallel()
+		d := b.doc(b.p(b.text("foo"), b.img(), b.br(), b.text("bar")))
+		got := d.TextBetween(0, d.Content.Size, "", func(node *Node) string {
+			switch node.Type.Name {
+			case "image":
+				return "<image>"
+			case "hard_break":
+				return "<break>"
+			default:
+				return ""
+			}
+		})
+		assert.Equal(t, "foo<image><break>bar", got)
+	})
+
+	t.Run("passes the separator between block nodes", func(t *testing.T) {
+		t.Parallel()
+		d := b.doc(b.p(b.text("foo")), b.p(b.text("bar")))
+		assert.Equal(t, "foo\nbar", d.TextBetween(0, d.Content.Size, "\n", nil))
+	})
+
+	t.Run("separates blocks nested in non-textblock blocks", func(t *testing.T) {
+		t.Parallel()
+		d := b.doc(b.blockquote(b.p(b.text("foo"))), b.blockquote(b.p(b.text("bar"))))
+		assert.Equal(t, "foo bar", d.TextBetween(0, d.Content.Size, " ", nil))
+	})
+
+	t.Run("concatenates without a separator and drops leaf nodes without leafText", func(t *testing.T) {
+		t.Parallel()
+		d := b.doc(b.p(b.text("foo"), b.br(), b.text("bar")), b.p(b.text("baz")))
+		assert.Equal(t, "foobarbaz", d.TextBetween(0, d.Content.Size, "", nil))
+	})
+
+	t.Run("extracts a partial range, slicing the text nodes", func(t *testing.T) {
+		t.Parallel()
+		// doc(p("hello")): content positions 1..6 cover "hello", so 2..5 is "ell".
+		d := b.doc(b.p(b.text("hello")))
+		assert.Equal(t, "ell", d.TextBetween(2, 5, "", nil))
 	})
 }
 

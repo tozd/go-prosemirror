@@ -116,6 +116,56 @@ func (f *Fragment) ForEach(fn func(node *Node, offset, index int)) {
 	}
 }
 
+// NodesBetweenFunc is the callback type for NodesBetween. It receives a node, the node's position, the node's parent (nil
+// at the root of the traversal), and the node's index within its parent. Returning false stops the traversal from
+// descending into the node's children.
+type NodesBetweenFunc func(node *Node, pos int, parent *Node, index int) bool
+
+// NodesBetween invokes fn for each node between the two positions (relative to the start of this fragment) that overlaps
+// the range, descending into a node's children unless fn returns false for it. nodeStart is the position of this fragment
+// in the enclosing structure and parent is the node that holds it (nil at the top level). It is a port of
+// Fragment.nodesBetween from prosemirror-model.
+func (f *Fragment) NodesBetween(from, to int, fn NodesBetweenFunc, nodeStart int, parent *Node) {
+	pos := 0
+	for i := 0; i < len(f.Content) && pos < to; i++ {
+		child := f.Content[i]
+		end := pos + child.NodeSize()
+		if end > from && fn(child, nodeStart+pos, parent, i) && child.Content.Size != 0 {
+			start := pos + 1
+			child.Content.NodesBetween(max(0, from-start), min(child.Content.Size, to-start), fn, nodeStart+start, child)
+		}
+		pos = end
+	}
+}
+
+// TextBetween extracts the text between the two positions (relative to the start of this fragment). blockSeparator, when
+// not empty, is inserted between the text of separate block nodes. leafText, when not nil, renders leaf nodes. It is a
+// port of Fragment.textBetween from prosemirror-model; the reference also falls back to a node spec leafText, which the
+// schema dialect does not have, so leaf text is supplied only through the leafText argument.
+func (f *Fragment) TextBetween(from, to int, blockSeparator string, leafText func(node *Node) string) string {
+	var sb strings.Builder
+	first := true
+	f.NodesBetween(from, to, func(node *Node, pos int, _ *Node, _ int) bool {
+		var nodeText string
+		switch {
+		case node.IsText():
+			nodeText = utf16Slice(node.Text, max(from, pos)-pos, to-pos)
+		case node.IsLeaf() && leafText != nil:
+			nodeText = leafText(node)
+		}
+		if node.IsBlock() && ((node.IsLeaf() && nodeText != "") || node.IsTextblock()) && blockSeparator != "" {
+			if first {
+				first = false
+			} else {
+				sb.WriteString(blockSeparator)
+			}
+		}
+		sb.WriteString(nodeText)
+		return true
+	}, 0, nil)
+	return sb.String()
+}
+
 // String returns a debugging string that describes this fragment.
 func (f *Fragment) String() string {
 	return "<" + f.toStringInner() + ">"
